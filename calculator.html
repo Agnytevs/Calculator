@@ -1,1 +1,536 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a1a">
+<title>Калькулятор Pro</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%; overflow: hidden;
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+    background: #1a1a1a; color: #fff;
+    user-select: none; -webkit-user-select: none;
+  }
+  #app {
+    display: flex; flex-direction: column;
+    height: 100vh; height: 100dvh;
+    padding: 6px; gap: 4px;
+    max-width: 520px; margin: 0 auto;
+  }
+  .topbar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 10px; font-size: 13px; font-weight: bold; min-height: 22px;
+  }
+  #memLabel { color: #f1c40f; }
+  #modeBtn  { color: #3498db; cursor: pointer; padding: 2px 8px; }
+  .display {
+    background: #0f0f0f; border-radius: 12px;
+    padding: 14px 18px; text-align: right;
+    display: flex; flex-direction: column; justify-content: center;
+    min-height: 96px;
+  }
+  #screen {
+    font-size: 32px; font-weight: bold;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    line-height: 1.2;
+  }
+  #hint {
+    font-size: 12px; color: #888; min-height: 16px;
+    margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .grid {
+    flex: 1; display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-auto-rows: 1fr;
+    gap: 4px;
+  }
+  button {
+    border: none; border-radius: 10px;
+    font-size: 16px; font-weight: bold; color: #fff;
+    font-family: inherit; cursor: pointer;
+    transition: filter 0.1s; padding: 0;
+    min-height: 0;
+  }
+  button:active { filter: brightness(1.25); }
+  .num   { background: #2c3e50; }
+  .op    { background: #e67e22; }
+  .fn    { background: #8e44ad; }
+  .ctrl  { background: #34495e; }
+  .gray  { background: #7f8c8d; }
+  .red   { background: #c0392b; }
+  .green { background: #27ae60; }
+  .teal  { background: #16a085; }
+  #historyModal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 100;
+    justify-content: center; align-items: center; padding: 20px;
+  }
+  #historyModal.open { display: flex; }
+  #historyBox {
+    background: #1e1e1e; border-radius: 14px;
+    width: 100%; max-width: 400px; max-height: 80vh;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  #historyBox h3 { padding: 14px 18px; border-bottom: 1px solid #333; font-size: 16px; }
+  #historyList {
+    flex: 1; overflow-y: auto; padding: 10px 18px;
+    font-family: 'Consolas', monospace; font-size: 13px;
+    line-height: 1.7; color: #ddd;
+  }
+  #historyList .empty { color: #666; }
+  #closeHist {
+    background: #c0392b; border-radius: 0; padding: 12px;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <span id="memLabel"></span>
+    <span id="modeBtn">DEG</span>
+  </div>
+  <div class="display">
+    <div id="screen">0</div>
+    <div id="hint"></div>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
 
+<div id="historyModal">
+  <div id="historyBox">
+    <h3>История</h3>
+    <div id="historyList"></div>
+    <button id="closeHist">Закрыть</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  ВЫЧИСЛИТЕЛЬ (порт SafeEval с Python)
+// ═══════════════════════════════════════════════════════
+
+const FUNCS = {
+  sqrt:  Math.sqrt,
+  sin:   Math.sin, cos: Math.cos, tan: Math.tan,
+  asin:  Math.asin, acos: Math.acos, atan: Math.atan,
+  log:   Math.log, log10: Math.log10, log2: Math.log2,
+  abs:   Math.abs, exp: Math.exp,
+  floor: Math.floor, ceil: Math.ceil,
+  degrees: x => x * 180 / Math.PI,
+  radians: x => x * Math.PI / 180,
+  mod:   (a, b) => a % b,
+};
+
+const CONSTS = { pi: Math.PI, e: Math.E };
+
+let degreesMode = true;
+
+// ─── Токенизатор ────────────────────────────────────────
+function tokenize(s) {
+  const tokens = [];
+  let i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (/\s/.test(ch)) { i++; continue; }
+    if (/[0-9.]/.test(ch)) {
+      let j = i;
+      while (j < s.length && /[0-9.]/.test(s[j])) j++;
+      tokens.push({ type: 'num', value: parseFloat(s.slice(i, j)) });
+      i = j; continue;
+    }
+    if (/[a-zA-Z_]/.test(ch)) {
+      let j = i;
+      while (j < s.length && /[a-zA-Z0-9_]/.test(s[j])) j++;
+      tokens.push({ type: 'name', value: s.slice(i, j) });
+      i = j; continue;
+    }
+    if ('+-*/%^(),'.includes(ch)) {
+      tokens.push({ type: 'op', value: ch });
+      i++; continue;
+    }
+    throw new Error('Недопустимый символ: ' + ch);
+  }
+  return tokens;
+}
+
+// ─── Парсер (рекурсивный спуск) ─────────────────────────
+function parse(tokens) {
+  let pos = 0;
+  const peek = () => tokens[pos];
+  const next = () => tokens[pos++];
+  const expect = (val) => {
+    const t = next();
+    if (!t || t.value !== val) throw new Error('Ожидалось: ' + val);
+    return t;
+  };
+
+  function parseExpr() { return parseAddSub(); }
+
+  function parseAddSub() {
+    let left = parseMulDiv();
+    while (peek() && (peek().value === '+' || peek().value === '-')) {
+      const op = next().value;
+      const right = parseMulDiv();
+      left = op === '+' ? left + right : left - right;
+    }
+    return left;
+  }
+
+  function parseMulDiv() {
+    let left = parseUnary();
+    while (peek() && (peek().value === '*' || peek().value === '/' || peek().value === '%')) {
+      const op = next().value;
+      const right = parseUnary();
+      if (op === '*') left = left * right;
+      else if (op === '/') {
+        if (right === 0) throw new Error('На ноль делить нельзя');
+        left = left / right;
+      } else {
+        if (right === 0) throw new Error('На ноль делить нельзя');
+        left = left % right;
+      }
+    }
+    return left;
+  }
+
+  function parseUnary() {
+    if (peek() && peek().value === '-') {
+      next();
+      return -parseUnary();
+    }
+    if (peek() && peek().value === '+') {
+      next();
+      return parseUnary();
+    }
+    return parsePower();
+  }
+
+  function parsePower() {
+    const base = parseAtom();
+    if (peek() && peek().value === '^') {
+      next();
+      const exp = parseUnary();
+      return Math.pow(base, exp);
+    }
+    return base;
+  }
+
+  function parseAtom() {
+    const t = next();
+    if (!t) throw new Error('Неожиданный конец выражения');
+
+    if (t.type === 'num') {
+      // процент: 10% → 0.1
+      if (peek() && peek().value === '%') {
+        next();
+        return t.value / 100;
+      }
+      return t.value;
+    }
+
+    if (t.type === 'name') {
+      if (t.value in CONSTS) {
+        let val = CONSTS[t.value];
+        if (peek() && peek().value === '%') { next(); val = val / 100; }
+        return val;
+      }
+      if (t.value in FUNCS) {
+        expect('(');
+        const arg = parseExpr();
+        expect(')');
+        let fn = FUNCS[t.value];
+        if (degreesMode && ['sin','cos','tan'].includes(t.value)) {
+          arg = arg * Math.PI / 180;
+        }
+        let res = fn(arg);
+        if (degreesMode && ['asin','acos','atan'].includes(t.value)) {
+          res = res * 180 / Math.PI;
+        }
+        if (peek() && peek().value === '%') { next(); res = res / 100; }
+        return res;
+      }
+      throw new Error('Неизвестное имя: ' + t.value);
+    }
+
+    if (t.value === '(') {
+      const val = parseExpr();
+      expect(')');
+      if (peek() && peek().value === '%') { next(); return val / 100; }
+      return val;
+    }
+
+    throw new Error('Неожиданный токен: ' + t.value);
+  }
+
+  const result = parseExpr();
+  if (pos < tokens.length) throw new Error('Лишний токен: ' + tokens[pos].value);
+  return result;
+}
+
+// ─── Препроцессинг (√, ×, ÷, π, −) ──────────────────────
+function preprocess(expr) {
+  // √X → sqrt(X)
+  let result = '';
+  let i = 0;
+  while (i < expr.length) {
+    if (expr[i] === '√') {
+      // читаем аргумент
+      i++;
+      let arg = '';
+      if (expr[i] === '(') {
+        let depth = 1, j = i + 1;
+        while (j < expr.length && depth > 0) {
+          if (expr[j] === '(') depth++;
+          else if (expr[j] === ')') depth--;
+          j++;
+        }
+        arg = expr.slice(i, j);
+        i = j;
+      } else if (/[0-9.]/.test(expr[i])) {
+        let j = i;
+        while (j < expr.length && /[0-9.]/.test(expr[j])) j++;
+        arg = expr.slice(i, j);
+        i = j;
+      } else if (/[a-zA-Zπ]/.test(expr[i])) {
+        let j = i;
+        while (j < expr.length && /[a-zA-Z0-9_π]/.test(expr[j])) j++;
+        arg = expr.slice(i, j);
+        i = j;
+        // если после имени идёт (...) — захватим
+        if (expr[i] === '(') {
+          let depth = 1, k = i + 1;
+          while (k < expr.length && depth > 0) {
+            if (expr[k] === '(') depth++;
+            else if (expr[k] === ')') depth--;
+            k++;
+          }
+          arg += expr.slice(i, k);
+          i = k;
+        }
+      } else if (expr[i] === '-') {
+        // √-X → sqrt(-X)
+        i++;
+        let j = i;
+        while (j < expr.length && /[0-9.]/.test(expr[j])) j++;
+        arg = '-' + expr.slice(i, j);
+        i = j;
+      }
+      result += 'sqrt(' + arg + ')';
+    } else {
+      result += expr[i];
+      i++;
+    }
+  }
+  return result
+    .replace(/π/g, 'pi')
+    .replace(/×/g, '*')
+    .replace(/÷/g, '/')
+    .replace(/−/g, '-');
+}
+
+function safeEval(expr) {
+  const cleaned = preprocess(expr);
+  const tokens = tokenize(cleaned);
+  return parse(tokens);
+}
+
+// ═══════════════════════════════════════════════════════
+//  СОСТОЯНИЕ И UI
+// ═══════════════════════════════════════════════════════
+
+let expression = '';
+let resultShown = false;
+let memory = 0;
+let history = [];
+
+const screenEl = document.getElementById('screen');
+const hintEl   = document.getElementById('hint');
+const memEl    = document.getElementById('memLabel');
+const modeEl   = document.getElementById('modeBtn');
+const gridEl   = document.getElementById('grid');
+const histModal = document.getElementById('historyModal');
+const histList  = document.getElementById('historyList');
+
+function updateScreen() {
+  screenEl.textContent = expression || '0';
+}
+
+function fmt(value) {
+  if (typeof value === 'number') {
+    if (Number.isInteger(value) && Math.abs(value) < 1e16) return String(value);
+    return String(parseFloat(value.toPrecision(12)));
+  }
+  return String(value);
+}
+
+function insert(text) {
+  if (resultShown) {
+    if (/^[0-9.(a-zA-Z√π]/.test(text)) expression = '';
+    resultShown = false;
+  }
+  if (expression.length + text.length > 120) return;
+  expression += text;
+  updateScreen();
+}
+
+function onClear() {
+  expression = ''; resultShown = false;
+  hintEl.textContent = '';
+  updateScreen();
+}
+
+function onBackspace() {
+  expression = expression.slice(0, -1);
+  resultShown = false;
+  updateScreen();
+}
+
+function onNegate() {
+  if (!expression) expression = '-';
+  else if (expression.startsWith('-')) expression = expression.slice(1);
+  else expression = '-' + expression;
+  updateScreen();
+}
+
+function onFactorial() {
+  if (resultShown) resultShown = false;
+  expression = expression ? `fact(${expression})` : 'fact(';
+  updateScreen();
+}
+
+function onInverse() {
+  if (!expression) return;
+  resultShown = false;
+  expression = `1/(${expression})`;
+  updateScreen();
+}
+
+function onEquals() {
+  if (!expression) return;
+  try {
+    // автозакрытие скобок
+    const open = (expression.match(/\(/g) || []).length;
+    const close = (expression.match(/\)/g) || []).length;
+    const expr = expression + ')'.repeat(Math.max(0, open - close));
+
+    // fact() — спецфункция
+    let prepared = expr.replace(/fact\(/g, 'factorial(');
+
+    const result = safeEval(prepared);
+    if (typeof result !== 'number' || Number.isNaN(result) || !Number.isFinite(result)) {
+      throw new Error('Результат не определён');
+    }
+
+    hintEl.textContent = expression + ' =';
+    history.push([expression, fmt(result)]);
+    expression = fmt(result);
+    resultShown = true;
+    updateScreen();
+  } catch (e) {
+    hintEl.textContent = '⚠ ' + e.message;
+    expression = '';
+    resultShown = false;
+    updateScreen();
+  }
+}
+
+function toggleDegrees() {
+  degreesMode = !degreesMode;
+  modeEl.textContent = degreesMode ? 'DEG' : 'RAD';
+}
+
+function memUpdate() {
+  memEl.textContent = memory ? 'M: ' + fmt(memory) : '';
+}
+function memClear()  { memory = 0; memUpdate(); }
+function memRecall() { if (resultShown) resultShown = false; expression += fmt(memory); updateScreen(); }
+function memAdd()    { try { const v = expression ? safeEval(preprocess(expression)) : 0; memory += v; memUpdate(); } catch(e){} }
+function memSub()    { try { const v = expression ? safeEval(preprocess(expression)) : 0; memory -= v; memUpdate(); } catch(e){} }
+
+function showHistory() {
+  histList.innerHTML = history.length
+    ? history.map(([e, r]) => `<div>${e} = ${r}</div>`).join('')
+    : '<div class="empty">История пуста</div>';
+  histModal.classList.add('open');
+}
+
+// ─── Кнопки ─────────────────────────────────────────────
+const BUTTONS = [
+  ['MC',  'gray', memClear],
+  ['MR',  'gray', memRecall],
+  ['M+',  'gray', memAdd],
+  ['M-',  'gray', memSub],
+  ['C',   'red',  onClear],
+
+  ['sin', 'fn', () => insert('sin(')],
+  ['cos', 'fn', () => insert('cos(')],
+  ['tan', 'fn', () => insert('tan(')],
+  ['⌫',   'ctrl', onBackspace],
+  ['(',   'ctrl', () => insert('(')],
+
+  ['√',   'fn', () => insert('√(')],
+  ['x²',  'fn', () => insert('^2')],
+  ['xʸ',  'fn', () => insert('^')],
+  ['%',   'fn', () => insert('%')],
+  [')',   'ctrl', () => insert(')')],
+
+  ['log', 'fn', () => insert('log10(')],
+  ['ln',  'fn', () => insert('log(')],
+  ['n!',  'fn', onFactorial],
+  ['π',   'fn', () => insert('π')],
+  ['e',   'fn', () => insert('e')],
+
+  ['7',   'num', () => insert('7')],
+  ['8',   'num', () => insert('8')],
+  ['9',   'num', () => insert('9')],
+  ['÷',   'op',  () => insert('/')],
+  ['mod', 'fn', () => insert('mod(')],
+
+  ['4',   'num', () => insert('4')],
+  ['5',   'num', () => insert('5')],
+  ['6',   'num', () => insert('6')],
+  ['×',   'op',  () => insert('*')],
+  ['1/x', 'fn', onInverse],
+
+  ['1',   'num', () => insert('1')],
+  ['2',   'num', () => insert('2')],
+  ['3',   'num', () => insert('3')],
+  ['−',   'op',  () => insert('-')],
+  ['=',   'green', onEquals],
+
+  ['0',   'num', () => insert('0')],
+  ['.',   'num', () => insert('.')],
+  ['±',   'num', onNegate],
+  ['+',   'op',  () => insert('+')],
+  ['Hist','teal', showHistory],
+];
+
+// добавляем факториал как функцию
+FUNCS.factorial = (n) => {
+  if (n < 0 || !Number.isInteger(n)) throw new Error('Факториал только для целых ≥ 0');
+  if (n > 170) throw new Error('Слишком большое число');
+  let r = 1;
+  for (let i = 2; i <= n; i++) r *= i;
+  return r;
+};
+
+BUTTONS.forEach(([label, cls, fn]) => {
+  const b = document.createElement('button');
+  b.textContent = label;
+  b.className = cls;
+  b.addEventListener('click', fn);
+  gridEl.appendChild(b);
+});
+
+modeEl.addEventListener('click', toggleDegrees);
+document.getElementById('closeHist').addEventListener('click', () => histModal.classList.remove('open'));
+histModal.addEventListener('click', (e) => { if (e.target === histModal) histModal.classList.remove('open'); });
+
+updateScreen();
+memUpdate();
+</script>
+</body>
+</html>
