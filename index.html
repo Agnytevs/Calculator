@@ -64,6 +64,7 @@
   @keyframes float2 { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(-5%, -3%) scale(1.12); } }
   html.light body::before, html.light body::after { opacity:0.5; }
   body.no-bg::before, body.no-bg::after { display:none; }
+  body.no-bg { background:var(--bg); }
 
   #app {
     position:relative; z-index:1;
@@ -406,6 +407,23 @@
     border:1px solid var(--border); cursor:pointer; background:var(--bg-elev);
   }
 
+  .bg-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+  .bg-swatch {
+    aspect-ratio:1.4; border-radius:12px; cursor:pointer;
+    border:3px solid transparent; transition:transform 0.15s, border-color 0.2s;
+    position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px;
+  }
+  .bg-swatch:hover { transform:scale(1.04); }
+  .bg-swatch.active { border-color:var(--text); }
+  .bg-swatch .bg-label {
+    position:absolute; bottom:4px; left:0; right:0;
+    text-align:center; font-size:9px; font-weight:700;
+    color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.7);
+    letter-spacing:0.3px;
+  }
+
   .mtx-pair { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
   .mtx-card {
     background:var(--bg-panel); border:1px solid var(--border);
@@ -501,6 +519,7 @@
     text-align:left;
     appearance:none; -moz-appearance:textfield; -webkit-appearance:none;
     line-height:1.2; height:auto; outline:none;
+    transition:border-color 0.2s, box-shadow 0.2s;
   }
   .conv-input-row input[type="number"]::-webkit-outer-spin-button,
   .conv-input-row input[type="number"]::-webkit-inner-spin-button {
@@ -552,6 +571,15 @@
   .ref-item .name { font-weight:700; color:var(--accent); }
   .ref-item:hover .name { color:#fff; }
   .ref-item .val { color:var(--text-dim); font-size:11px; }
+
+  .ref-section { margin-bottom:6px; }
+  .ref-section-title {
+    font-size:12px; font-weight:800; color:var(--text-mute);
+    text-transform:uppercase; letter-spacing:0.8px;
+    margin:14px 0 6px; padding-bottom:4px;
+    border-bottom:1px solid var(--border);
+  }
+  .ref-section-title:first-child { margin-top:0; }
 
   .stat-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }
   .stat-item {
@@ -615,6 +643,7 @@
     .mtx-pair { grid-template-columns:1fr; }
     .stat-grid { grid-template-columns:1fr 1fr; }
     .theme-grid { grid-template-columns:repeat(3, 1fr); }
+    .bg-grid { grid-template-columns:repeat(2, 1fr); }
   }
 </style>
 </head>
@@ -965,8 +994,20 @@ function pulseOutput(el) {
 }
 
 // ═══════════════════════════════════════════════════════
-//  ТЕМА
+//  ТЕМА И ФОН
 // ═══════════════════════════════════════════════════════
+const BG_PRESETS = {
+  default:  { label:'По умолчанию', preview:'linear-gradient(135deg,#0e1116,#1a2030)', icon:'🎨' },
+  dark:     { label:'Тёмный',       preview:'linear-gradient(135deg,#0a0c10,#141922)', icon:'🌑' },
+  midnight: { label:'Полночь',      preview:'linear-gradient(135deg,#0d1424,#1a0b2e)', icon:'🌌' },
+  emerald:  { label:'Изумруд',      preview:'linear-gradient(135deg,#06231b,#0e3a2c)', icon:'💚' },
+  sunset:   { label:'Закат',        preview:'linear-gradient(135deg,#2b0f1f,#4a1a14)', icon:'🌅' },
+  ocean:    { label:'Океан',        preview:'linear-gradient(135deg,#0a1f2e,#0e2a3a)', icon:'🌊' },
+  light:    { label:'Светлый',      preview:'linear-gradient(135deg,#eef1f7,#dde3ee)', icon:'☀️' },
+  paper:    { label:'Бумага',       preview:'linear-gradient(135deg,#f5f0e6,#e8dfce)', icon:'📜' },
+  nature:   { label:'Природа',      preview:'linear-gradient(135deg,#1a2e1a,#2d4a2d)', icon:'🌿' },
+};
+
 function applyTheme() {
   const theme = STORE.get('theme', 'dark');
   if (theme === 'light') document.documentElement.classList.add('light');
@@ -996,7 +1037,61 @@ function applyTheme() {
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', theme === 'light' ? '#eef1f7' : '#0e1116');
   if (currentTab === 'graph') setTimeout(drawGraph, 60);
+  applyBackground();
 }
+
+function applyBackground() {
+  const preset = STORE.get('bgPreset', 'default');
+  const body = document.body;
+  body.classList.remove('no-bg');
+  
+  // Reset dynamic background styles
+  body.style.background = '';
+  document.documentElement.style.removeProperty('--bg');
+  document.documentElement.style.removeProperty('--bg-elev');
+  document.documentElement.style.removeProperty('--bg-elev-2');
+  document.documentElement.style.removeProperty('--bg-panel');
+
+  const bgOn = STORE.get('bg', true);
+  if (!bgOn || preset === 'default') {
+    if (!bgOn) body.classList.add('no-bg');
+    return;
+  }
+
+  const isLight = STORE.get('theme', 'dark') === 'light';
+  
+  const bgMap = {
+    dark:     { bg:'#0a0c10', elev:'#141922', elev2:'#1a2030', panel:'#0f1218', glow1:'rgba(91,157,255,0.08)', glow2:'rgba(124,92,255,0.08)' },
+    midnight: { bg:'#0d1424', elev:'#141e33', elev2:'#1a2540', panel:'#101828', glow1:'rgba(139,92,246,0.12)', glow2:'rgba(59,130,246,0.12)' },
+    emerald:  { bg:'#06231b', elev:'#0e3a2c', elev2:'#124a38', panel:'#0a2e23', glow1:'rgba(62,207,142,0.12)', glow2:'rgba(34,160,107,0.12)' },
+    sunset:   { bg:'#1a0a0f', elev:'#2b0f1f', elev2:'#3a1528', panel:'#200c14', glow1:'rgba(255,91,110,0.12)', glow2:'rgba(255,180,84,0.12)' },
+    ocean:    { bg:'#0a1f2e', elev:'#0e2a3a', elev2:'#133647', panel:'#0c2432', glow1:'rgba(45,212,191,0.12)', glow2:'rgba(91,157,255,0.12)' },
+    light:    { bg:'#eef1f7', elev:'#ffffff', elev2:'#e2e7ef', panel:'#ffffff', glow1:'rgba(91,157,255,0.10)', glow2:'rgba(124,92,255,0.10)' },
+    paper:    { bg:'#f5f0e6', elev:'#ffffff', elev2:'#e8dfce', panel:'#faf7f0', glow1:'rgba(180,140,100,0.10)', glow2:'rgba(200,160,120,0.10)' },
+    nature:   { bg:'#0f1a0f', elev:'#1a2e1a', elev2:'#243d24', panel:'#132013', glow1:'rgba(62,207,142,0.12)', glow2:'rgba(120,200,100,0.12)' },
+  };
+
+  const map = bgMap[preset];
+  if (map) {
+    document.documentElement.style.setProperty('--bg', map.bg);
+    document.documentElement.style.setProperty('--bg-elev', map.elev);
+    document.documentElement.style.setProperty('--bg-elev-2', map.elev2);
+    document.documentElement.style.setProperty('--bg-panel', map.panel);
+    document.documentElement.style.setProperty('--glow-1', map.glow1);
+    document.documentElement.style.setProperty('--glow-2', map.glow2);
+    body.style.background = map.bg;
+    if (preset === 'light' || preset === 'paper') {
+      document.documentElement.classList.add('light');
+    } else if (STORE.get('theme', 'dark') === 'dark') {
+      // keep dark
+    }
+    // Also fix light overrides
+    if (preset === 'light' || preset === 'paper') {
+      document.documentElement.classList.add('light');
+    }
+  }
+}
+
 function hexA(hex, a) {
   hex = hex.replace('#','');
   if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
@@ -1004,10 +1099,6 @@ function hexA(hex, a) {
   const g = parseInt(hex.slice(2,4),16);
   const b = parseInt(hex.slice(4,6),16);
   return `rgba(${r},${g},${b},${a})`;
-}
-function applyBg() {
-  const on = STORE.get('bg', true);
-  document.body.classList.toggle('no-bg', !on);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1531,12 +1622,32 @@ getPanel('notes').innerHTML = `
 
 getPanel('ref').innerHTML = `
   <div class="card">
-    <h3>Физические константы</h3>
+    <h3>📐 Математика</h3>
+    <div class="ref-grid" id="mathConsts"></div>
+  </div>
+  <div class="card">
+    <h3>⚛️ Физические константы</h3>
     <div class="ref-grid" id="constList"></div>
   </div>
   <div class="card">
-    <h3>Формулы</h3>
-    <div class="ref-grid" id="formulaList"></div>
+    <h3>🔬 Химия</h3>
+    <div class="ref-grid" id="chemList"></div>
+  </div>
+  <div class="card">
+    <h3>📊 Единицы СИ</h3>
+    <div class="ref-grid" id="siList"></div>
+  </div>
+  <div class="card">
+    <h3>📝 Формулы: Геометрия</h3>
+    <div class="ref-grid" id="geoFormulas"></div>
+  </div>
+  <div class="card">
+    <h3>⚡ Формулы: Физика</h3>
+    <div class="ref-grid" id="physFormulas"></div>
+  </div>
+  <div class="card">
+    <h3>🧮 Формулы: Алгебра</h3>
+    <div class="ref-grid" id="algFormulas"></div>
   </div>
 `;
 
@@ -1620,7 +1731,7 @@ getPanel('stats').innerHTML = `
 
 getPanel('settings').innerHTML = `
   <div class="card">
-    <h3>Тема</h3>
+    <h3>🎨 Акцентный цвет</h3>
     <div class="theme-grid" id="themeGrid"></div>
     <div class="custom-color-row">
       <input type="color" id="customAccent1" value="#5b9dff">
@@ -1629,20 +1740,27 @@ getPanel('settings').innerHTML = `
     </div>
   </div>
   <div class="card">
-    <h3>Режим</h3>
+    <h3>🖼️ Фон приложения</h3>
+    <div class="bg-grid" id="bgGrid"></div>
+    <div class="toggle-row" style="margin-top:6px;">
+      <span>✨ Живой фон (градиенты)</span>
+      <div class="switch on" id="bgSwitch"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>🌗 Режим</h3>
     <div class="toggle-row"><span>🌙 Тёмная тема</span><div class="switch on" id="darkSwitch"></div></div>
     <div class="toggle-row"><span>🔊 Звук нажатий</span><div class="switch" id="soundSwitch"></div></div>
     <div class="toggle-row"><span>📳 Вибрация</span><div class="switch on" id="vibrateSwitch"></div></div>
     <div class="toggle-row"><span>🎉 Конфетти</span><div class="switch on" id="confettiSwitch"></div></div>
-    <div class="toggle-row"><span>✨ Живой фон</span><div class="switch on" id="bgSwitch"></div></div>
   </div>
   <div class="card">
-    <h3>Приложение</h3>
+    <h3>📱 Приложение</h3>
     <button class="btn" id="installBtn" style="width:100%">📥 Установить приложение</button>
     <div style="font-size:12px;color:var(--text-mute);margin-top:8px;" id="installHint">Работает офлайн после установки. Иконка появится на главном экране.</div>
   </div>
   <div class="card">
-    <h3>Данные</h3>
+    <h3>🗑️ Данные</h3>
     <button class="btn danger" id="resetAll" style="width:100%">Сбросить всё</button>
   </div>
 `;
@@ -1651,7 +1769,6 @@ getPanel('settings').innerHTML = `
 //  ИНИЦИАЛИЗАЦИЯ
 // ═══════════════════════════════════════════════════════
 applyTheme();
-applyBg();
 switchTab('basic');
 
 if ('serviceWorker' in navigator) {
@@ -2834,7 +2951,7 @@ document.getElementById('saveMatrix').addEventListener('click', () => {
 document.getElementById('cancelMatrix').addEventListener('click', () => matrixModal.classList.remove('open'));
 
 // ═══════════════════════════════════════════════════════
-//  КОНВЕРТЕР
+//  КОНВЕРТЕР (обновлён: перемещение по цифровым данным)
 // ═══════════════════════════════════════════════════════
 const CONV_CATEGORIES = {
   'Температура': {
@@ -2936,7 +3053,90 @@ function convertNow() {
   unitEl.textContent = to;
   pulseOutput(document.querySelector('.conv-result'));
 }
+
+// Перемещение по цифрам в конвертере (стрелки ←/→)
 document.getElementById('convInput').addEventListener('input', convertNow);
+
+document.getElementById('convInput').addEventListener('keydown', (e) => {
+  const input = e.target;
+  const start = input.selectionStart;
+  const end = input.selectionEnd;
+  const len = input.value.length;
+
+  // Перемещение влево/вправо по цифрам
+  if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    if (start > 0) {
+      let newPos = start - 1;
+      input.setSelectionRange(newPos, newPos);
+    }
+    return;
+  }
+  if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    if (end < len) {
+      let newPos = end + 1;
+      input.setSelectionRange(newPos, newPos);
+    }
+    return;
+  }
+  // Home/End
+  if (e.key === 'Home') {
+    e.preventDefault();
+    input.setSelectionRange(0, 0);
+    return;
+  }
+  if (e.key === 'End') {
+    e.preventDefault();
+    input.setSelectionRange(len, len);
+    return;
+  }
+  // Вверх/вниз меняют значение на шаг (как в числовых полях)
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    let val = parseFloat(input.value.replace(',', '.'));
+    if (isNaN(val)) val = 0;
+    const step = e.shiftKey ? 10 : 1;
+    val += (e.key === 'ArrowUp' ? step : -step);
+    // Ограничим количество знаков после запятой
+    const str = String(parseFloat(val.toFixed(6)));
+    input.value = str;
+    convertNow();
+    // Ставим курсор в конец
+    input.setSelectionRange(str.length, str.length);
+    return;
+  }
+  // Delete / Backspace — стандартное поведение, но после него пересчитываем
+  if (e.key === 'Backspace' || e.key === 'Delete') {
+    // Дадим браузеру обработать, а потом пересчитаем
+    setTimeout(() => {
+      convertNow();
+    }, 0);
+    return;
+  }
+});
+
+// Также можно добавить перемещение колёсиком мыши по цифрам
+document.getElementById('convInput').addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const input = e.target;
+  const rect = input.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const charWidth = rect.width / Math.max(input.value.length, 1);
+  const digitIndex = Math.round(x / charWidth);
+  const val = input.value;
+  
+  if (digitIndex >= 0 && digitIndex < val.length && /[0-9]/.test(val[digitIndex])) {
+    let num = parseInt(val[digitIndex], 10);
+    const dir = e.deltaY < 0 ? 1 : -1;
+    num = (num + dir + 10) % 10;
+    const newVal = val.slice(0, digitIndex) + num + val.slice(digitIndex + 1);
+    input.value = newVal;
+    input.setSelectionRange(digitIndex + 1, digitIndex + 1);
+    convertNow();
+  }
+}, { passive: false });
+
 document.getElementById('convFrom').addEventListener('change', convertNow);
 document.getElementById('convTo').addEventListener('change', convertNow);
 document.getElementById('convSwap').addEventListener('click', () => {
@@ -2987,36 +3187,227 @@ document.getElementById('bookmarkAdd').addEventListener('click', () => {
 });
 
 // ═══════════════════════════════════════════════════════
-//  СПРАВОЧНИК
+//  СПРАВОЧНИК (расширенный)
 // ═══════════════════════════════════════════════════════
+
+// Математические константы
+const MATH_CONSTS = [
+  ['π', 'Число пи', 3.141592653589793],
+  ['e', 'Основание нат. лог.', 2.718281828459045],
+  ['φ', 'Золотое сечение', 1.618033988749895],
+  ['√2', 'Корень из 2', 1.4142135623730951],
+  ['√3', 'Корень из 3', 1.7320508075688772],
+  ['√5', 'Корень из 5', 2.23606797749979],
+  ['ln2', 'Натуральный лог. 2', 0.6931471805599453],
+  ['ln10', 'Натуральный лог. 10', 2.302585092994046],
+  ['γ', 'Постоянная Эйлера', 0.5772156649015329],
+  ['ζ(3)', 'Постоянная Апери', 1.2020569031595942],
+  ['K', 'Постоянная Каталана', 0.915965594177219],
+  ['G', 'Гравитационная', 6.67430e-11],
+];
+
+// Физические константы
 const PHYS_CONSTS = [
-  ['c','скорость света',299792458],['h','Планк',6.62607015e-34],['ℏ','ħ',1.054571817e-34],
-  ['k','Больцман',1.380649e-23],['N_A','Авогадро',6.02214076e23],['R','Газовая',8.314462618],
-  ['G','Гравитац.',6.67430e-11],['g','Ускор. своб.',9.80665],['e','Элем. заряд',1.602176634e-19],
-  ['m_e','Масса e⁻',9.1093837015e-31],['m_p','Масса p',1.67262192369e-27],
-  ['ε₀','Электр. пост.',8.8541878128e-12],['μ₀','Магн. пост.',1.25663706212e-6],
+  ['c', 'Скорость света', 299792458],
+  ['h', 'Постоянная Планка', 6.62607015e-34],
+  ['ℏ', 'Приведённая Планка', 1.054571817e-34],
+  ['k', 'Постоянная Больцмана', 1.380649e-23],
+  ['N_A', 'Число Авогадро', 6.02214076e23],
+  ['R', 'Универсальная газовая', 8.314462618],
+  ['G', 'Гравитационная', 6.67430e-11],
+  ['g', 'Ускорение своб. падения', 9.80665],
+  ['e', 'Элементарный заряд', 1.602176634e-19],
+  ['m_e', 'Масса электрона', 9.1093837015e-31],
+  ['m_p', 'Масса протона', 1.67262192369e-27],
+  ['m_n', 'Масса нейтрона', 1.67492749804e-27],
+  ['ε₀', 'Электрическая постоянная', 8.8541878128e-12],
+  ['μ₀', 'Магнитная постоянная', 1.25663706212e-6],
+  ['R_∞', 'Постоянная Ридберга', 10973731.568160],
+  ['F', 'Постоянная Фарадея', 96485.33212],
+  ['σ', 'Постоянная Стефана-Больцмана', 5.670374419e-8],
+  ['b', 'Постоянная Вина', 2.897771955e-3],
+  ['α', 'Постоянная тонкой структуры', 7.2973525693e-3],
 ];
-const FORMULAS = [
-  ['S прямоуг.','a·b'],['S круга','π·r²'],['C круга','2·π·r'],['V шара','(4/3)·π·r³'],
-  ['S шара','4·π·r²'],['Пифагор','c² = a² + b²'],['V цилиндра','π·r²·h'],['S трапеции','(a+b)/2·h'],
-  ['E кин.','mv²/2'],['E пот.','mgh'],['Работа','F·s·cos(α)'],['Мощность','A/t'],
-  ['Закон Ома','I = U/R'],['Плотность','m/V'],['Скорость','v = s/t'],['Ускорение','a = Δv/t'],
+
+// Химия
+const CHEM_LIST = [
+  ['H', 'Водород', 1.008],
+  ['He', 'Гелий', 4.0026],
+  ['Li', 'Литий', 6.94],
+  ['Be', 'Бериллий', 9.0122],
+  ['B', 'Бор', 10.81],
+  ['C', 'Углерод', 12.011],
+  ['N', 'Азот', 14.007],
+  ['O', 'Кислород', 15.999],
+  ['F', 'Фтор', 18.998],
+  ['Ne', 'Неон', 20.180],
+  ['Na', 'Натрий', 22.990],
+  ['Mg', 'Магний', 24.305],
+  ['Al', 'Алюминий', 26.982],
+  ['Si', 'Кремний', 28.085],
+  ['P', 'Фосфор', 30.974],
+  ['S', 'Сера', 32.06],
+  ['Cl', 'Хлор', 35.45],
+  ['Ar', 'Аргон', 39.948],
+  ['K', 'Калий', 39.098],
+  ['Ca', 'Кальций', 40.078],
+  ['Fe', 'Железо', 55.845],
+  ['Cu', 'Медь', 63.546],
+  ['Zn', 'Цинк', 65.38],
+  ['Ag', 'Серебро', 107.868],
+  ['Sn', 'Олово', 118.710],
+  ['I', 'Иод', 126.904],
+  ['Au', 'Золото', 196.967],
+  ['Hg', 'Ртуть', 200.592],
+  ['Pb', 'Свинец', 207.2],
+  ['U', 'Уран', 238.029],
 ];
-const constList = document.getElementById('constList');
-PHYS_CONSTS.forEach(([name, full, val]) => {
-  const div = document.createElement('div');
-  div.className = 'ref-item';
-  div.innerHTML = `<span class="name">${name}</span><span style="font-size:11px;color:var(--text-dim)">${full}</span><span class="val">${val.toExponential(4)}</span>`;
-  div.addEventListener('click', () => { expression += String(val); resultShown = false; switchTab('basic'); updateScreen(); haptic(); });
-  constList.appendChild(div);
-});
-const formulaList = document.getElementById('formulaList');
-FORMULAS.forEach(([name, formula]) => {
-  const div = document.createElement('div');
-  div.className = 'ref-item';
-  div.innerHTML = `<span class="name">${name}</span><span style="font-family:monospace;color:var(--text)">${formula}</span>`;
-  formulaList.appendChild(div);
-});
+
+// Единицы СИ
+const SI_LIST = [
+  ['м', 'Метр', 'длина'],
+  ['кг', 'Килограмм', 'масса'],
+  ['с', 'Секунда', 'время'],
+  ['А', 'Ампер', 'сила тока'],
+  ['К', 'Кельвин', 'температура'],
+  ['моль', 'Моль', 'кол-во вещества'],
+  ['кд', 'Кандела', 'сила света'],
+  ['Гц', 'Герц', 'частота'],
+  ['Н', 'Ньютон', 'сила'],
+  ['Па', 'Паскаль', 'давление'],
+  ['Дж', 'Джоуль', 'энергия'],
+  ['Вт', 'Ватт', 'мощность'],
+  ['Кл', 'Кулон', 'заряд'],
+  ['В', 'Вольт', 'напряжение'],
+  ['Ом', 'Ом', 'сопротивление'],
+  ['Ф', 'Фарад', 'электроёмкость'],
+  ['Тл', 'Тесла', 'магн. индукция'],
+  ['Вб', 'Вебер', 'магн. поток'],
+  ['лм', 'Люмен', 'световой поток'],
+  ['лк', 'Люкс', 'освещённость'],
+  ['Бк', 'Беккерель', 'активность'],
+  ['Гр', 'Грей', 'погл. доза'],
+  ['Зв', 'Зиверт', 'экв. доза'],
+  ['рад', 'Радиан', 'угол'],
+  ['ср', 'Стерадиан', 'телесный угол'],
+];
+
+// Формулы: Геометрия
+const GEO_FORMULAS = [
+  ['S прямоугольника', 'a·b'],
+  ['P прямоугольника', '2(a+b)'],
+  ['S квадрата', 'a²'],
+  ['P квадрата', '4a'],
+  ['S круга', 'π·r²'],
+  ['C круга', '2·π·r'],
+  ['S треугольника', '½·a·h'],
+  ['S треуг. (Герон)', '√(p(p−a)(p−b)(p−c))'],
+  ['S трапеции', '(a+b)/2·h'],
+  ['S ромба', '½·d₁·d₂'],
+  ['V куба', 'a³'],
+  ['S куба', '6a²'],
+  ['V шара', '(4/3)·π·r³'],
+  ['S сферы', '4·π·r²'],
+  ['V цилиндра', 'π·r²·h'],
+  ['S бок. цилиндра', '2·π·r·h'],
+  ['V конуса', '(1/3)·π·r²·h'],
+  ['S бок. конуса', 'π·r·l'],
+  ['V пирамиды', '(1/3)·S_осн·h'],
+  ['Пифагор', 'c² = a² + b²'],
+  ['Теорема синусов', 'a/sinA = b/sinB = c/sinC = 2R'],
+  ['Теорема косинусов', 'c² = a² + b² − 2ab·cosC'],
+];
+
+// Формулы: Физика
+const PHYS_FORMULAS = [
+  ['Скорость', 'v = s/t'],
+  ['Ускорение', 'a = Δv/t'],
+  ['Путь при равнопер.', 's = v₀t + ½at²'],
+  ['2-й закон Ньютона', 'F = m·a'],
+  ['Импульс', 'p = m·v'],
+  ['Работа', 'A = F·s·cosα'],
+  ['Мощность', 'P = A/t'],
+  ['Кин. энергия', 'E = mv²/2'],
+  ['Пот. энергия', 'E = mgh'],
+  ['Закон Ома', 'I = U/R'],
+  ['Мощность тока', 'P = U·I'],
+  ['Закон Джоуля-Ленца', 'Q = I²Rt'],
+  ['Сопротивление', 'R = ρ·l/S'],
+  ['Послед. соед.', 'R = R₁ + R₂'],
+  ['Паралл. соед.', '1/R = 1/R₁ + 1/R₂'],
+  ['Плотность', 'ρ = m/V'],
+  ['Давление', 'P = F/S'],
+  ['Давл. жидкости', 'P = ρgh'],
+  ['Сила Архимеда', 'F = ρgV'],
+  ['Кол-во теплоты', 'Q = cmΔT'],
+  ['Плавление', 'Q = λm'],
+  ['Парообразование', 'Q = Lm'],
+  ['КПД', 'η = A_полезн/A_затр · 100%'],
+  ['Длина волны', 'λ = v/ν'],
+  ['Энергия фотона', 'E = hν'],
+];
+
+// Формулы: Алгебра
+const ALG_FORMULAS = [
+  ['(a+b)²', 'a² + 2ab + b²'],
+  ['(a−b)²', 'a² − 2ab + b²'],
+  ['a²−b²', '(a−b)(a+b)'],
+  ['(a+b)³', 'a³ + 3a²b + 3ab² + b³'],
+  ['(a−b)³', 'a³ − 3a²b + 3ab² − b³'],
+  ['a³+b³', '(a+b)(a²−ab+b²)'],
+  ['a³−b³', '(a−b)(a²+ab+b²)'],
+  ['Квадратное ур.', 'x = (−b ± √D)/(2a)'],
+  ['Дискриминант', 'D = b² − 4ac'],
+  ['Теорема Виета', 'x₁+x₂ = −b/a; x₁x₂ = c/a'],
+  ['Логарифм произв.', 'log(ab) = log a + log b'],
+  ['Логарифм частн.', 'log(a/b) = log a − log b'],
+  ['Логарифм степ.', 'log(aⁿ) = n·log a'],
+  ['Переход к осн.', 'log_b(a) = ln a / ln b'],
+  ['sin²+cos²', '= 1'],
+  ['sin2α', '2·sinα·cosα'],
+  ['cos2α', 'cos²α − sin²α'],
+  ['tg2α', '2tgα/(1−tg²α)'],
+  ['Сумма sin', 'sinα+sinβ = 2sin((α+β)/2)cos((α−β)/2)'],
+  ['Разность sin', 'sinα−sinβ = 2sin((α−β)/2)cos((α+β)/2)'],
+  ['Сумма cos', 'cosα+cosβ = 2cos((α+β)/2)cos((α−β)/2)'],
+  ['Произв. sin·cos', '½(sin(α+β)+sin(α−β))'],
+  ['Сумма арифм.', 'Sₙ = n(a₁+aₙ)/2'],
+  ['Сумма геом.', 'Sₙ = b₁(qⁿ−1)/(q−1)'],
+];
+
+function buildRefGrid(containerId, items, isFormula) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  items.forEach(([name, full, val]) => {
+    const div = document.createElement('div');
+    div.className = 'ref-item';
+    if (isFormula) {
+      div.innerHTML = `<span class="name">${name}</span><span style="font-family:monospace;color:var(--text);font-size:12px">${full}</span>`;
+    } else {
+      div.innerHTML = `<span class="name">${name}</span><span style="font-size:11px;color:var(--text-dim)">${full}</span><span class="val">${typeof val === 'number' ? val.toExponential(4) : val}</span>`;
+      div.addEventListener('click', () => {
+        if (typeof val === 'number') {
+          expression += String(val);
+          resultShown = false;
+          switchTab('basic');
+          updateScreen();
+          haptic();
+        }
+      });
+    }
+    el.appendChild(div);
+  });
+}
+
+// Строим все секции справочника
+buildRefGrid('mathConsts', MATH_CONSTS, false);
+buildRefGrid('constList', PHYS_CONSTS, false);
+buildRefGrid('chemList', CHEM_LIST, false);
+buildRefGrid('siList', SI_LIST, false);
+buildRefGrid('geoFormulas', GEO_FORMULAS, true);
+buildRefGrid('physFormulas', PHYS_FORMULAS, true);
+buildRefGrid('algFormulas', ALG_FORMULAS, true);
 
 // ═══════════════════════════════════════════════════════
 //  POMODORO
@@ -3290,6 +3681,28 @@ document.getElementById('applyCustom').addEventListener('click', () => {
   renderThemePicker();
   showToast('✓ Своя тема применена');
 });
+
+function renderBgPicker() {
+  const grid = document.getElementById('bgGrid');
+  if (!grid) return;
+  const current = STORE.get('bgPreset', 'default');
+  grid.innerHTML = '';
+  Object.entries(BG_PRESETS).forEach(([id, p]) => {
+    const sw = document.createElement('div');
+    sw.className = 'bg-swatch' + (current === id ? ' active' : '');
+    sw.style.background = p.preview;
+    sw.innerHTML = `<span style="font-size:20px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))">${p.icon}</span><span class="bg-label">${p.label}</span>`;
+    sw.addEventListener('click', () => {
+      STORE.set('bgPreset', id);
+      applyBackground();
+      renderBgPicker();
+      showToast(`✓ Фон: ${p.label}`);
+      haptic();
+    });
+    grid.appendChild(sw);
+  });
+}
+
 (function initDarkSwitch() {
   const el = document.getElementById('darkSwitch');
   const theme = STORE.get('theme', 'dark');
@@ -3298,12 +3711,13 @@ document.getElementById('applyCustom').addEventListener('click', () => {
     const now = el.classList.contains('on');
     STORE.set('theme', now ? 'dark' : 'light');
     applyTheme();
+    renderBgPicker();
   });
 })();
 setupSwitch('soundSwitch', 'sound', false, () => playClick());
 setupSwitch('vibrateSwitch', 'vibrate', true, () => haptic());
 setupSwitch('confettiSwitch', 'confetti', true, (on) => { if (on) fireConfetti(); });
-setupSwitch('bgSwitch', 'bg', true, (on) => { document.body.classList.toggle('no-bg', !on); });
+setupSwitch('bgSwitch', 'bg', true, (on) => { applyBackground(); });
 document.getElementById('resetAll').addEventListener('click', () => {
   if (!confirm('Сбросить всё?')) return;
   Object.keys(localStorage).filter(k => k.startsWith('calc_')).forEach(k => localStorage.removeItem(k));
@@ -3311,6 +3725,7 @@ document.getElementById('resetAll').addEventListener('click', () => {
 });
 
 renderThemePicker();
+renderBgPicker();
 renderGraphFns();
 renderGraphKeys();
 renderGraphPresets();
