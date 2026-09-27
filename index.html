@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0e1116">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Калькулятор Pro MAX</title>
 <style>
   :root {
@@ -18,8 +19,8 @@
     --btn-ctrl-bg:#1d222b; --btn-ctrl-text:#8b95a5;
     --radius:14px; --radius-sm:10px;
     --shadow:0 4px 20px rgba(0,0,0,0.35);
-    --glow-1: rgba(91,157,255,0.10);
-    --glow-2: rgba(124,92,255,0.10);
+    --glow-1:rgba(91,157,255,0.10);
+    --glow-2:rgba(124,92,255,0.10);
   }
   html.light {
     --bg:#eef1f7; --bg-elev:#ffffff; --bg-elev-2:#e2e7ef; --bg-panel:#ffffff;
@@ -30,8 +31,8 @@
     --btn-fn-bg:#d4defc; --btn-fn-text:#2a4d99;
     --btn-ctrl-bg:#e2e7ef; --btn-ctrl-text:#5b6473;
     --shadow:0 4px 20px rgba(20,30,60,0.08);
-    --glow-1: rgba(58,127,224,0.08);
-    --glow-2: rgba(106,76,224,0.08);
+    --glow-1:rgba(58,127,224,0.08);
+    --glow-2:rgba(106,76,224,0.08);
   }
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html, body {
@@ -42,13 +43,12 @@
     -webkit-font-smoothing:antialiased;
     transition:background 0.4s, color 0.4s;
   }
-
-  /* Живой фон */
   body::before, body::after {
     content:''; position:fixed; inset:-20%;
     pointer-events:none; z-index:0;
     background:radial-gradient(600px 500px at 30% 20%, var(--glow-1), transparent 60%);
     animation:float1 18s ease-in-out infinite;
+    will-change:transform;
   }
   body::after {
     background:radial-gradient(500px 400px at 80% 80%, var(--glow-2), transparent 60%);
@@ -63,6 +63,7 @@
     50% { transform:translate(-5%, -3%) scale(1.12); }
   }
   html.light body::before, html.light body::after { opacity:0.5; }
+  body.no-bg::before, body.no-bg::after { display:none; }
 
   #app {
     position:relative; z-index:1;
@@ -77,7 +78,6 @@
     to   { opacity:1; transform:translateY(0); }
   }
 
-  /* ── Вкладки ── */
   .tabs-wrap {
     display:flex; align-items:center; gap:2px;
     background:var(--bg-elev); border:1px solid var(--border);
@@ -105,7 +105,6 @@
     border-radius:9px; border:none; cursor:pointer;
     white-space:nowrap; font-family:inherit;
     transition:background 0.25s, color 0.25s, transform 0.1s;
-    position:relative;
   }
   .tabs button:active { transform:scale(0.96); }
   .tabs button.active {
@@ -119,7 +118,6 @@
     60% { transform:scale(1.04); }
     100% { transform:scale(1); }
   }
-
   .panel {
     display:none; flex:1; flex-direction:column; gap:6px;
     min-height:0; overflow-y:auto; padding-right:2px;
@@ -132,8 +130,6 @@
     from { opacity:0; transform:translateY(10px); }
     to   { opacity:1; transform:translateY(0); }
   }
-
-  /* ── Топбар ── */
   .topbar {
     display:flex; justify-content:space-between; align-items:center;
     padding:0 6px; font-size:12px; font-weight:600; min-height:22px;
@@ -162,7 +158,6 @@
   #themeBtn { transition:transform 0.4s cubic-bezier(0.4, 1.6, 0.5, 1); display:inline-block; }
   #themeBtn.spin { transform:rotate(360deg); }
 
-  /* ── Дисплей ── */
   .display {
     background:var(--bg-panel); border:1px solid var(--border);
     border-radius:var(--radius); padding:16px 18px; text-align:right;
@@ -204,7 +199,6 @@
     transition:color 0.2s;
   }
 
-  /* ── Сетка кнопок ── */
   .grid {
     flex:1; display:grid;
     grid-template-columns:repeat(5, 1fr);
@@ -215,10 +209,7 @@
     font-size:15.5px; font-weight:600; color:var(--text);
     font-family:inherit; cursor:pointer;
     transition:transform 0.1s cubic-bezier(0.4, 1.6, 0.5, 1),
-               filter 0.15s,
-               background 0.4s,
-               color 0.4s,
-               box-shadow 0.15s;
+               filter 0.15s, background 0.4s, color 0.4s, box-shadow 0.15s;
     padding:0; min-height:0;
     display:flex; align-items:center; justify-content:center;
     box-shadow:inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 2px rgba(0,0,0,0.3);
@@ -228,8 +219,6 @@
   html.light button.b { box-shadow:inset 0 1px 0 rgba(255,255,255,0.6), 0 1px 2px rgba(0,0,0,0.06); }
   button.b:hover { filter:brightness(1.12); }
   button.b:active { transform:scale(0.94); filter:brightness(0.95); }
-
-  /* Ripple */
   .ripple {
     position:absolute; border-radius:50%;
     background:rgba(255,255,255,0.45);
@@ -237,9 +226,7 @@
     pointer-events:none;
   }
   html.light .ripple { background:rgba(0,0,0,0.15); }
-  @keyframes ripple {
-    to { transform:scale(4); opacity:0; }
-  }
+  @keyframes ripple { to { transform:scale(4); opacity:0; } }
 
   .num   { background:var(--btn-num-bg);   color:var(--btn-num-text); }
   .op    { background:var(--btn-op-bg);    color:var(--btn-op-text); font-size:19px; }
@@ -248,11 +235,9 @@
   .gray  { background:var(--btn-ctrl-bg);  color:var(--btn-ctrl-text); font-size:12.5px; }
   .red   { background:linear-gradient(135deg,#ff5b6e,#d63a4d); color:#fff; }
   .green { background:linear-gradient(135deg,#3ecf8e,#22a06b); color:#fff; font-size:19px; }
-  .green:active { box-shadow:0 0 0 0 rgba(62,207,142,0.6), inset 0 1px 0 rgba(255,255,255,0.1); }
   .teal  { background:linear-gradient(135deg,#2dd4bf,#189e8e); color:#04231f; font-size:12.5px; }
   .blue  { background:linear-gradient(135deg,var(--accent),#3a7fe0); color:#fff; font-size:12.5px; }
 
-  /* ── Карточки ── */
   .card {
     background:var(--bg-panel); border:1px solid var(--border);
     border-radius:var(--radius); padding:14px;
@@ -308,7 +293,6 @@
   }
   .output.err { border-color:var(--danger); color:var(--danger); animation:shake 0.4s ease; }
 
-  /* ── Модалки ── */
   .modal {
     display:none; position:fixed; inset:0;
     background:rgba(6,8,12,0.75); backdrop-filter:blur(10px);
@@ -340,7 +324,7 @@
   .modal-btn:hover { filter:brightness(1.1); }
   .modal-btn.red { background:linear-gradient(135deg,#ff5b6e,#d63a4d); border-top:1px solid var(--border); }
 
-  /* ── График ── */
+  /* Графики */
   #graphCanvas {
     width:100%; height:auto; display:block;
     border-radius:8px;
@@ -366,7 +350,9 @@
     flex:1; background:var(--bg-elev); color:var(--text);
     border:1px solid var(--border); border-radius:var(--radius-sm);
     padding:10px 12px; font-size:15px; font-family:inherit;
+    font-variant-numeric:tabular-nums;
   }
+  .graph-fn-row input[type="text"]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(91,157,255,0.18); }
   .graph-fn-row .del-btn {
     flex:0 0 auto; background:transparent; color:var(--text-dim);
     border:none; font-size:18px; cursor:pointer; padding:6px 10px;
@@ -374,33 +360,40 @@
   }
   .graph-fn-row .del-btn:hover { color:var(--danger); }
   .graph-fn-row .del-btn:active { transform:scale(0.85); }
+  .graph-fn-row .del-btn:disabled { opacity:0.3; cursor:not-allowed; }
 
-  /* ── Дроби ── */
-  .frac-row { display:flex; align-items:center; gap:8px; justify-content:center; margin:8px 0; }
-  .frac-input { display:flex; flex-direction:column; align-items:center; width:72px; }
-  .frac-input input {
-    width:100%; text-align:center;
-    background:var(--bg-elev); border:2px solid var(--border);
-    border-radius:8px; padding:8px;
-    font-size:18px; font-weight:600; font-family:inherit;
-    color:var(--text);
-    transition:border-color 0.2s;
+  .graph-keys {
+    display:grid; grid-template-columns:repeat(6, 1fr); gap:5px;
   }
-  .frac-input input:focus { border-color:var(--accent); outline:none; }
-  .frac-line { width:100%; height:2px; background:var(--border); margin:2px 0; }
-  .frac-op-sel {
-    background:var(--bg-elev); color:var(--text);
-    border:1px solid var(--border); border-radius:8px;
-    padding:8px 6px; font-size:18px; font-weight:600; font-family:inherit;
-  }
-  .frac-result {
-    text-align:center; font-size:22px; font-weight:600;
-    font-family:'SF Mono',Consolas,monospace;
-    padding:8px 0; color:var(--success);
+  .graph-keys button {
+    padding:11px 4px; font-size:13.5px; font-weight:600;
+    background:var(--btn-num-bg); color:var(--btn-num-text);
+    border:none; border-radius:9px; cursor:pointer; font-family:inherit;
+    transition:transform 0.1s, filter 0.15s;
     font-variant-numeric:tabular-nums;
   }
+  .graph-keys button:hover { filter:brightness(1.15); }
+  .graph-keys button:active { transform:scale(0.94); }
+  .graph-keys button.op { background:var(--btn-op-bg); color:var(--btn-op-text); font-size:16px; }
+  .graph-keys button.fn { background:var(--btn-fn-bg); color:var(--btn-fn-text); font-size:12.5px; }
+  .graph-keys button.ctrl { background:var(--btn-ctrl-bg); color:var(--btn-ctrl-text); }
+  .graph-keys button.green { background:linear-gradient(135deg,#3ecf8e,#22a06b); color:#fff; }
+  .graph-keys button.red { background:linear-gradient(135deg,#ff5b6e,#d63a4d); color:#fff; }
 
-  /* ── Матрицы ── */
+  .graph-presets {
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:5px;
+    margin-top:6px;
+  }
+  .graph-presets button {
+    padding:9px 4px; font-size:12px; font-weight:600;
+    background:var(--bg-elev-2); color:var(--text);
+    border:none; border-radius:9px; cursor:pointer; font-family:inherit;
+    transition:transform 0.1s, background 0.2s;
+  }
+  .graph-presets button:hover { background:var(--accent); color:#fff; }
+  .graph-presets button:active { transform:scale(0.94); }
+
+  /* Матрицы */
   .mtx-pair { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
   .mtx-card {
     background:var(--bg-panel); border:1px solid var(--border);
@@ -469,7 +462,7 @@
   .mtx-result td:last-child { border-right:none; }
   .mtx-result .scalar { font-size:20px; color:var(--success); font-weight:700; }
 
-  /* ── Конвертер ── */
+  /* Конвертер */
   .conv-cats { display:flex; gap:5px; overflow-x:auto; padding:2px; scrollbar-width:none; }
   .conv-cats::-webkit-scrollbar { display:none; }
   .conv-cats button {
@@ -494,7 +487,7 @@
     flex:1; background:var(--bg-elev); color:var(--text);
     border:1px solid var(--border); border-radius:var(--radius-sm);
     padding:11px 14px; font-size:19px; font-weight:600;
-    font-family:inherit;
+    font-family:inherit; font-variant-numeric:tabular-nums;
   }
   .conv-select {
     background:var(--bg-elev-2); color:var(--text);
@@ -512,11 +505,11 @@
   .conv-result .val {
     font-size:22px; font-weight:700; color:var(--success);
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-    flex:1;
+    flex:1; font-variant-numeric:tabular-nums;
   }
   .conv-result .unit { font-size:13px; color:var(--text-dim); font-weight:600; }
 
-  /* ── Pomodoro ── */
+  /* Pomodoro */
   .pomo-display {
     text-align:center; font-size:42px; font-weight:700;
     color:var(--accent);
@@ -532,7 +525,7 @@
   }
   .pomo-mode { text-align:center; color:var(--text-dim); font-size:13px; margin-bottom:8px; }
 
-  /* ── Справочник ── */
+  /* Справочник */
   .ref-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; }
   .ref-item {
     background:var(--bg-elev-2); border-radius:var(--radius-sm);
@@ -546,7 +539,7 @@
   .ref-item:hover .name { color:#fff; }
   .ref-item .val { color:var(--text-dim); font-size:11px; }
 
-  /* ── Статистика ── */
+  /* Статистика */
   .stat-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }
   .stat-item {
     background:var(--bg-elev-2); border-radius:var(--radius-sm);
@@ -556,15 +549,12 @@
   .stat-item:hover { transform:translateY(-2px); }
   .stat-item .num {
     font-size:22px; font-weight:700; color:var(--accent);
-    background:none;
-    font-variant-numeric:tabular-nums;
+    background:none; font-variant-numeric:tabular-nums;
   }
   .stat-item .lbl { font-size:11px; color:var(--text-mute); margin-top:4px; }
-  .bar {
-    transition:height 0.5s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.3s;
-  }
+  .bar { transition:height 0.5s cubic-bezier(0.2, 0.9, 0.3, 1); }
 
-  /* ── Конфетти ── */
+  /* Конфетти */
   #confetti {
     position:fixed; inset:0; pointer-events:none; z-index:999;
     overflow:hidden;
@@ -578,7 +568,6 @@
     100% { transform:translateY(100vh) rotateZ(720deg); opacity:0; }
   }
 
-  /* ── Настройки звука ── */
   .toggle-row {
     display:flex; justify-content:space-between; align-items:center;
     padding:10px 0; font-size:14px;
@@ -596,6 +585,18 @@
   }
   .switch.on { background:var(--accent); }
   .switch.on::after { transform:translateX(18px); }
+
+  /* Toast */
+  .toast {
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px);
+    background:var(--bg-elev); border:1px solid var(--border);
+    color:var(--text); padding:12px 20px; border-radius:12px;
+    font-size:14px; font-weight:600; z-index:1000;
+    box-shadow:0 8px 30px rgba(0,0,0,0.4);
+    transition:transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+    pointer-events:none;
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); }
 
   ::-webkit-scrollbar { width:6px; height:6px; }
   ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
@@ -698,14 +699,23 @@
       <h3>Функции</h3>
       <div id="graphFns"></div>
       <button class="btn ghost" id="graphAddFn" style="width:100%;margin-top:6px;">+ Добавить функцию</button>
-      <div class="btn-row" style="margin-top:8px;">
+
+      <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin:12px 0 6px;">Быстрые пресеты</div>
+      <div class="graph-presets" id="graphPresets"></div>
+
+      <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin:12px 0 6px;">Ввод</div>
+      <div class="graph-keys" id="graphKeys"></div>
+
+      <div class="btn-row" style="margin-top:10px;">
         <button class="btn success" id="graphDraw" style="flex:2">Построить</button>
         <button class="btn ghost" id="graphAuto" title="Авто-масштаб">⛶</button>
         <button class="btn ghost" id="graphZoomIn">+</button>
         <button class="btn ghost" id="graphZoomOut">−</button>
         <button class="btn ghost" id="graphReset">⟲</button>
+        <button class="btn ghost" id="graphShare" title="Скачать PNG">⬇</button>
       </div>
     </div>
+
     <div class="graph-wrap" style="position:relative;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);padding:6px;box-shadow:var(--shadow);overflow:hidden;">
       <canvas id="graphCanvas"></canvas>
       <div class="graph-info">
@@ -713,9 +723,11 @@
         <span id="graphRangeY">y ∈ [−10, 10]</span>
       </div>
     </div>
+
     <div class="card" style="padding:10px;">
       <div style="font-size:12px;color:var(--text-dim);line-height:1.6">
-        <b>Примеры:</b> <code>sin(x)</code>, <code>x^2 - 3x + 2</code>, <code>1/x</code>, <code>sqrt(abs(x))</code>, <code>e^x</code>, <code>ln(x)</code>.<br>
+        <b>Пишите как в тетради:</b> <code>2x</code>, <code>3x^2</code>, <code>sin(x)</code>, <code>x^3 - 2x + 1</code>, <code>1/x</code>, <code>√x</code>, <code>ln(x)</code>.<br>
+        <b>Авто-исправление:</b> <code>3x</code>→<code>3*x</code>, <code>x2</code>→<code>x^2</code>, <code>2π</code>→<code>2*π</code>, <code>(x+1)(x-2)</code>→<code>(x+1)*(x-2)</code>.<br>
         <b>Жесты:</b> тащите — сдвиг, щипок — зум, двойной тап — сброс.
       </div>
     </div>
@@ -876,6 +888,7 @@
 </div>
 
 <div id="confetti"></div>
+<div class="toast" id="toast"></div>
 
 <!-- Модалки -->
 <div class="modal" id="historyModal">
@@ -903,7 +916,7 @@
 
 <script>
 // ═══════════════════════════════════════════════════════
-//  ЯДРО
+//  ЯДРО ВЫЧИСЛИТЕЛЯ
 // ═══════════════════════════════════════════════════════
 const FUNCS = {
   sqrt:Math.sqrt, cbrt:Math.cbrt,
@@ -1092,7 +1105,12 @@ function parse(tokens, env) {
   return result;
 }
 function safeEval(expr, env) { return parse(tokenize(preprocess(expr)), env); }
-function safeEvalX(expr, x) { return safeEval(expr, { x }); }
+function safeEvalX(expr, x) {
+  // нормализуем "как в тетради" → машинная запись
+  let prepared = smartMathInput(expr);
+  prepared = preprocess(prepared);
+  return parse(tokenize(prepared), { x });
+}
 function fmt(v) {
   if (typeof v === 'number') {
     if (Number.isInteger(v) && Math.abs(v) < 1e16) return String(v);
@@ -1109,6 +1127,29 @@ function engineering(v) {
   return `${fmt(mant)}·10^${exp}`;
 }
 
+// ─── УМНЫЙ ВВОД ДЛЯ ГРАФИКОВ ───
+function smartMathInput(s) {
+  let r = s;
+  r = r.replace(/π/g, 'pi');
+  // 3x → 3*x; 3( → 3*(; 3√ → 3*√
+  r = r.replace(/(\d)([a-zA-Z(√])/g, '$1*$2');
+  // x2 → x^2 (но не трогаем sin, cos, и т.п., т.к. там не цифра после)
+  r = r.replace(/([a-zA-Z)])(\d+)/g, '$1^$2');
+  // )( → )*(
+  r = r.replace(/\)\s*\(/g, ')*(');
+  // x( → x*( ; )x → )*x
+  r = r.replace(/([a-zA-Z0-9)])(\()/g, '$1*$2');
+  // xx → x*x (кроме имён функций)
+  r = r.replace(/([a-zA-Z])\s*([a-zA-Z])/g, function(m, a, b) {
+    const known = ['sin','cos','tan','ln','log','pi','abs','sqrt','exp','ctg','sec','csc','e'];
+    if (known.includes(a) || known.includes(b)) return m;
+    return a + '*' + b;
+  });
+  // убираем лишние * после ^
+  r = r.replace(/\^\s*\*/g, '^');
+  return r;
+}
+
 // ═══════════════════════════════════════════════════════
 //  STORAGE
 // ═══════════════════════════════════════════════════════
@@ -1118,7 +1159,7 @@ const STORE = {
 };
 
 // ═══════════════════════════════════════════════════════
-//  ЗВУК
+//  ЗВУК / ВИБРАЦИЯ / КОНФЕТТИ / TOAST
 // ═══════════════════════════════════════════════════════
 let audioCtx = null;
 function playClick() {
@@ -1130,24 +1171,21 @@ function playClick() {
     o.connect(g); g.connect(audioCtx.destination);
     o.frequency.value = 800;
     o.type = 'sine';
-    g.gain.setValueAtTime(0.05, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.04, audioCtx.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
     o.start();
     o.stop(audioCtx.currentTime + 0.05);
   } catch {}
 }
-
-// ═══════════════════════════════════════════════════════
-//  ВИБРАЦИЯ
-// ═══════════════════════════════════════════════════════
-function haptic() {
+function haptic(type) {
   if (!STORE.get('vibrate', true)) return;
-  try { navigator.vibrate && navigator.vibrate(8); } catch {}
+  try {
+    if (!navigator.vibrate) return;
+    if (type === 'success') navigator.vibrate([15, 30, 15]);
+    else if (type === 'error') navigator.vibrate([40, 30, 40]);
+    else navigator.vibrate(8);
+  } catch {}
 }
-
-// ═══════════════════════════════════════════════════════
-//  КОНФЕТТИ
-// ═══════════════════════════════════════════════════════
 function fireConfetti() {
   if (!STORE.get('confetti', true)) return;
   const colors = ['#5b9dff','#7c5cff','#3ecf8e','#ffb454','#ff5b6e','#2dd4bf'];
@@ -1163,6 +1201,14 @@ function fireConfetti() {
     container.appendChild(p);
     setTimeout(() => p.remove(), 2500);
   }
+}
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1190,14 +1236,9 @@ document.getElementById('themeBtn').addEventListener('click', (e) => {
 });
 applyTheme();
 
-// Живой фон
 function applyBg() {
   const on = STORE.get('bg', true);
-  document.body.style.setProperty('--bg-anim', on ? 'running' : 'paused');
-  if (!on) {
-    document.body.style.setProperty('--glow-1', 'transparent');
-    document.body.style.setProperty('--glow-2', 'transparent');
-  }
+  document.body.classList.toggle('no-bg', !on);
 }
 applyBg();
 
@@ -1301,8 +1342,6 @@ function onEquals() {
     if (typeof result !== 'number' || Number.isNaN(result) || !Number.isFinite(result)) {
       throw new Error('Результат не определён');
     }
-
-    // вспышка дисплея
     displayEl.classList.add('flash');
     setTimeout(() => displayEl.classList.remove('flash'), 500);
 
@@ -1312,11 +1351,13 @@ function onEquals() {
     STORE.set('history', history);
     incrementStat('calc');
 
-    // красивый результат
     const nice = Number.isInteger(result) || Math.abs(result - Math.PI) < 1e-9 || Math.abs(result - Math.E) < 1e-9;
     if (nice) {
       screenEl.classList.add('success');
       fireConfetti();
+      haptic('success');
+    } else {
+      haptic('tap');
     }
     screenEl.classList.add('bump');
     setTimeout(() => screenEl.classList.remove('bump'), 300);
@@ -1329,6 +1370,7 @@ function onEquals() {
     expression = '';
     resultShown = false;
     screenEl.classList.add('error');
+    haptic('error');
     setTimeout(() => screenEl.classList.remove('error'), 500);
     updateScreen();
   }
@@ -1346,7 +1388,7 @@ function showHistory() {
   else {
     hl.innerHTML = history.slice().reverse().map(([e, r], i) => {
       const idx = history.length - 1 - i;
-      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-family:'SF Mono',Consolas,monospace;font-size:13px;transition:background 0.2s">
+      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-family:'SF Mono',Consolas,monospace;font-size:13px">
         <span>${e} <span style="color:var(--success)">= ${r}</span></span>
         <button onclick="copyHist(${idx})" style="background:var(--bg-elev-2);color:var(--accent);border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">📋</button>
       </div>`;
@@ -1358,7 +1400,7 @@ function showHistory() {
   }
   document.getElementById('historyModal').classList.add('open');
 }
-window.copyHist = function(i) { navigator.clipboard.writeText(`${history[i][0]} = ${history[i][1]}`); };
+window.copyHist = function(i) { navigator.clipboard.writeText(`${history[i][0]} = ${history[i][1]}`); showToast('✓ Скопировано'); };
 window.clearHistory = function() { if (confirm('Очистить историю?')) { history = []; STORE.set('history', []); showHistory(); } };
 window.exportHistory = function() {
   const csv = 'expr,result\n' + history.map(([e,r]) => `"${e.replace(/"/g,'""')}","${r}"`).join('\n');
@@ -1369,7 +1411,6 @@ window.exportHistory = function() {
   URL.revokeObjectURL(url);
 };
 
-// ─── Кнопки ───
 const ALL_BUTTONS = [
   ['MC','gray',memClear],['MR','gray',memRecall],['M+','gray',memAdd],['M-','gray',memSub],['C','red',onClear],
   ['sin','fn',()=>insert('sin(')],['cos','fn',()=>insert('cos(')],['tan','fn',()=>insert('tan(')],['asin','fn',()=>insert('asin(')],['acos','fn',()=>insert('acos(')],
@@ -1409,21 +1450,18 @@ modeEl.addEventListener('click', toggleDegrees);
 document.getElementById('closeHist').addEventListener('click', () =>
   document.getElementById('historyModal').classList.remove('open'));
 
-// долгий тап → копировать
 let touchTimer = null;
 screenEl.addEventListener('touchstart', () => {
   touchTimer = setTimeout(() => {
     navigator.clipboard.writeText(screenEl.textContent);
-    hintEl.textContent = '✓ Скопировано';
-    setTimeout(() => hintEl.textContent = '', 1200);
+    showToast('✓ Скопировано');
   }, 600);
 });
 screenEl.addEventListener('touchend', () => clearTimeout(touchTimer));
 screenEl.addEventListener('contextmenu', e => {
   e.preventDefault();
   navigator.clipboard.writeText(screenEl.textContent);
-  hintEl.textContent = '✓ Скопировано';
-  setTimeout(() => hintEl.textContent = '', 1200);
+  showToast('✓ Скопировано');
 });
 
 document.addEventListener('keydown', (e) => {
@@ -1483,10 +1521,14 @@ document.getElementById('solveSys').addEventListener('click', () => {
 // ═══════════════════════════════════════════════════════
 const graphCanvas = document.getElementById('graphCanvas');
 const graphFnsEl = document.getElementById('graphFns');
+const graphKeysEl = document.getElementById('graphKeys');
+const graphPresetsEl = document.getElementById('graphPresets');
 const PALETTE = ['#5b9dff', '#ff5b6e', '#3ecf8e', '#ffb454', '#7c5cff', '#2dd4bf'];
+
 let graphFns = STORE.get('graphFns', [{ expr: 'x^2 - 3x + 2', color: PALETTE[0], visible: true }]);
 let graphRange = 10;
 let graphCenter = { x: 0, y: 0 };
+let activeFnIndex = 0;
 
 function renderGraphFns() {
   graphFnsEl.innerHTML = '';
@@ -1495,12 +1537,13 @@ function renderGraphFns() {
     row.className = 'graph-fn-row';
     row.innerHTML = `
       <div class="color-dot" style="background:${fn.color}" data-idx="${i}"></div>
-      <input type="text" value="${fn.expr.replace(/"/g,'&quot;')}" placeholder="например: sin(x)" data-idx="${i}">
+      <input type="text" value="${fn.expr.replace(/"/g,'&quot;')}" placeholder="например: x^2 - 3x + 2" data-idx="${i}">
       <button class="del-btn" data-del="${i}" ${graphFns.length <= 1 ? 'disabled' : ''}>✕</button>
     `;
     graphFnsEl.appendChild(row);
   });
   graphFnsEl.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('focus', () => { activeFnIndex = +inp.dataset.idx; });
     inp.addEventListener('input', () => {
       graphFns[+inp.dataset.idx].expr = inp.value;
       STORE.set('graphFns', graphFns);
@@ -1527,6 +1570,109 @@ function renderGraphFns() {
   });
 }
 
+const GRAPH_KEYS = [
+  { label: 'x',   ins: 'x',   cls: 'num' },
+  { label: 'x²',  ins: '^2',  cls: 'fn'  },
+  { label: 'xʸ',  ins: '^',   cls: 'fn'  },
+  { label: '√',   ins: '√(',  cls: 'fn'  },
+  { label: '∛',   ins: '∛(',  cls: 'fn'  },
+  { label: '|x|', ins: 'abs(', cls: 'fn' },
+  { label: 'sin', ins: 'sin(', cls: 'fn' },
+  { label: 'cos', ins: 'cos(', cls: 'fn' },
+  { label: 'tan', ins: 'tan(', cls: 'fn' },
+  { label: 'ln',  ins: 'ln(',  cls: 'fn' },
+  { label: 'log', ins: 'log(', cls: 'fn' },
+  { label: 'eˣ',  ins: 'exp(', cls: 'fn' },
+  { label: 'π',   ins: 'π',   cls: 'fn' },
+  { label: 'e',   ins: 'e',   cls: 'fn' },
+  { label: '(',   ins: '(',   cls: 'ctrl' },
+  { label: ')',   ins: ')',   cls: 'ctrl' },
+  { label: '^',   ins: '^',   cls: 'op' },
+  { label: '.',   ins: '.',   cls: 'num' },
+  { label: '7', ins: '7', cls: 'num' },
+  { label: '8', ins: '8', cls: 'num' },
+  { label: '9', ins: '9', cls: 'num' },
+  { label: '+', ins: '+', cls: 'op'  },
+  { label: '−', ins: '-', cls: 'op'  },
+  { label: '⌫', ins: '__BACK__', cls: 'ctrl' },
+  { label: '4', ins: '4', cls: 'num' },
+  { label: '5', ins: '5', cls: 'num' },
+  { label: '6', ins: '6', cls: 'num' },
+  { label: '×', ins: '*', cls: 'op'  },
+  { label: '÷', ins: '/', cls: 'op'  },
+  { label: 'C', ins: '__CLEAR__', cls: 'red' },
+  { label: '1', ins: '1', cls: 'num' },
+  { label: '2', ins: '2', cls: 'num' },
+  { label: '3', ins: '3', cls: 'num' },
+  { label: '0', ins: '0', cls: 'num' },
+  { label: ',', ins: '.', cls: 'num' },
+  { label: '=', ins: '__DRAW__', cls: 'green' },
+];
+
+function renderGraphKeys() {
+  graphKeysEl.innerHTML = '';
+  GRAPH_KEYS.forEach(k => {
+    const b = document.createElement('button');
+    b.textContent = k.label;
+    b.className = k.cls;
+    b.addEventListener('pointerdown', (e) => addRipple(b, e));
+    b.addEventListener('click', () => { haptic(); playClick(); handleGraphKey(k.ins); });
+    graphKeysEl.appendChild(b);
+  });
+}
+
+const GRAPH_PRESETS = [
+  { label: 'x²', expr: 'x^2' },
+  { label: 'sin', expr: 'sin(x)' },
+  { label: 'cos', expr: 'cos(x)' },
+  { label: '√x', expr: '√(x)' },
+  { label: '1/x', expr: '1/x' },
+  { label: 'eˣ', expr: 'e^x' },
+  { label: 'ln x', expr: 'ln(x)' },
+  { label: 'x³', expr: 'x^3' },
+];
+
+function renderGraphPresets() {
+  graphPresetsEl.innerHTML = '';
+  GRAPH_PRESETS.forEach(p => {
+    const b = document.createElement('button');
+    b.textContent = p.label;
+    b.addEventListener('click', () => {
+      graphFns[activeFnIndex].expr = p.expr;
+      STORE.set('graphFns', graphFns);
+      renderGraphFns();
+      drawGraph();
+      haptic();
+    });
+    graphPresetsEl.appendChild(b);
+  });
+}
+
+function handleGraphKey(cmd) {
+  const input = graphFnsEl.querySelector(`input[data-idx="${activeFnIndex}"]`);
+  if (!input) return;
+  if (cmd === '__BACK__') {
+    const s = input.selectionStart, e = input.selectionEnd;
+    if (s !== e) input.value = input.value.slice(0, s) + input.value.slice(e);
+    else if (s > 0) input.value = input.value.slice(0, s - 1) + input.value.slice(s);
+    input.focus();
+  } else if (cmd === '__CLEAR__') {
+    input.value = '';
+    input.focus();
+  } else if (cmd === '__DRAW__') {
+    drawGraph();
+    return;
+  } else {
+    const s = input.selectionStart, e = input.selectionEnd;
+    input.value = input.value.slice(0, s) + cmd + input.value.slice(e);
+    input.selectionStart = input.selectionEnd = s + cmd.length;
+    input.focus();
+  }
+  graphFns[activeFnIndex].expr = input.value;
+  STORE.set('graphFns', graphFns);
+  scheduleDraw();
+}
+
 let drawTimer = null;
 function scheduleDraw() { clearTimeout(drawTimer); drawTimer = setTimeout(drawGraph, 250); }
 
@@ -1541,16 +1687,20 @@ function drawGraph() {
   graphCanvas.style.height = h + 'px';
   const ctx = graphCanvas.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
   const style = getComputedStyle(document.documentElement);
   const cBg    = style.getPropertyValue('--bg-elev').trim() || '#161a21';
   const cText  = style.getPropertyValue('--text-dim').trim() || '#8b95a5';
   const cAxis  = style.getPropertyValue('--text-mute').trim() || '#5b6473';
   const cGrid  = style.getPropertyValue('--border').trim() || '#262c36';
+
   ctx.fillStyle = cBg;
   ctx.fillRect(0, 0, w, h);
+
   const cx = w/2 - graphCenter.x * (w / (2*graphRange));
   const cy = h/2 + graphCenter.y * (h / (2*graphRange));
   const scale = w / (2 * graphRange);
+
   ctx.strokeStyle = cGrid;
   ctx.globalAlpha = 0.4;
   ctx.lineWidth = 1;
@@ -1566,10 +1716,12 @@ function drawGraph() {
     ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(w, py); ctx.stroke();
   }
   ctx.globalAlpha = 1;
+
   ctx.strokeStyle = cAxis;
   ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+
   ctx.fillStyle = cText;
   ctx.font = '11px system-ui, sans-serif';
   ctx.textAlign = 'center';
@@ -1585,6 +1737,7 @@ function drawGraph() {
     if (py < 12 || py > h - 4 || y === 0) continue;
     ctx.fillText(String(y), cx - 6, py + 4);
   }
+
   graphFns.forEach(fn => {
     if (!fn.visible || !fn.expr.trim()) return;
     ctx.strokeStyle = fn.color;
@@ -1605,13 +1758,20 @@ function drawGraph() {
     }
     ctx.stroke();
   });
+
   document.getElementById('graphRangeX').textContent = `x ∈ [${fmt(graphCenter.x - graphRange)}, ${fmt(graphCenter.x + graphRange)}]`;
   document.getElementById('graphRangeY').textContent = `y ∈ [${fmt(graphCenter.y - graphRange)}, ${fmt(graphCenter.y + graphRange)}]`;
 }
+
 document.getElementById('graphAddFn').addEventListener('click', () => {
   graphFns.push({ expr: '', color: PALETTE[graphFns.length % PALETTE.length], visible: true });
   STORE.set('graphFns', graphFns);
+  activeFnIndex = graphFns.length - 1;
   renderGraphFns();
+  setTimeout(() => {
+    const inp = graphFnsEl.querySelector(`input[data-idx="${activeFnIndex}"]`);
+    if (inp) inp.focus();
+  }, 50);
 });
 document.getElementById('graphDraw').addEventListener('click', drawGraph);
 document.getElementById('graphZoomIn').addEventListener('click', () => { graphRange = Math.max(0.5, graphRange/1.5); drawGraph(); });
@@ -1632,6 +1792,15 @@ document.getElementById('graphAuto').addEventListener('click', () => {
   }
   drawGraph();
 });
+document.getElementById('graphShare').addEventListener('click', () => {
+  try {
+    const url = graphCanvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url; a.download = 'graph.png'; a.click();
+    showToast('✓ График сохранён');
+  } catch { showToast('⚠ Не удалось сохранить'); }
+});
+
 let dragStart = null, pinchStart = null;
 graphCanvas.addEventListener('touchstart', (e) => {
   if (e.touches.length === 1) dragStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, cx: graphCenter.x, cy: graphCenter.y };
@@ -1657,6 +1826,7 @@ graphCanvas.addEventListener('touchmove', (e) => {
   }
 }, { passive: true });
 graphCanvas.addEventListener('touchend', () => { dragStart = null; pinchStart = null; });
+
 let mouseDown = null;
 graphCanvas.addEventListener('mousedown', (e) => {
   mouseDown = { x: e.clientX, y: e.clientY, cx: graphCenter.x, cy: graphCenter.y };
@@ -1837,7 +2007,7 @@ function handleMatrixOp(op) {
     else if (op==='clearresult') matrixResult = null;
     renderMatrixPanel();
     incrementStat('calc');
-  } catch (e) { alert('Ошибка: ' + e.message); }
+  } catch (e) { showToast('⚠ ' + e.message); }
 }
 function mAdd(a, b) { if (a.rows!==b.rows || a.cols!==b.cols) throw new Error('Размеры не совпадают'); return {rows:a.rows, cols:a.cols, data:a.data.map((r,i)=>r.map((v,j)=>v+b.data[i][j]))}; }
 function mSub(a, b) { if (a.rows!==b.rows || a.cols!==b.cols) throw new Error('Размеры не совпадают'); return {rows:a.rows, cols:a.cols, data:a.data.map((r,i)=>r.map((v,j)=>v-b.data[i][j]))}; }
@@ -1907,7 +2077,6 @@ document.getElementById('saveMatrix').addEventListener('click', () => {
   renderMatrixPanel();
 });
 document.getElementById('cancelMatrix').addEventListener('click', () => matrixModal.classList.remove('open'));
-renderMatrixPanel();
 
 // ═══════════════════════════════════════════════════════
 //  КОНВЕРТЕР
@@ -1953,7 +2122,6 @@ function convertNow() {
 document.getElementById('convInput').addEventListener('input', convertNow);
 document.getElementById('convFrom').addEventListener('change', convertNow);
 document.getElementById('convTo').addEventListener('change', convertNow);
-renderConvCategories(); renderConvUnits(); convertNow();
 
 // ═══════════════════════════════════════════════════════
 //  ЗАМЕТКИ / ЗАКЛАДКИ
@@ -1975,7 +2143,7 @@ function renderBookmarks() {
   const el = document.getElementById('bookmarkList');
   if (!bookmarks.length) { el.innerHTML = '<div style="color:var(--text-mute);font-size:13px;text-align:center;padding:8px">Нет сохранённых выражений</div>'; return; }
   el.innerHTML = bookmarks.map((b, i) => `
-    <div style="display:flex;gap:6px;align-items:center;background:var(--bg-elev-2);padding:8px 12px;border-radius:8px;transition:transform 0.15s">
+    <div style="display:flex;gap:6px;align-items:center;background:var(--bg-elev-2);padding:8px 12px;border-radius:8px">
       <span style="flex:1;font-family:'SF Mono',Consolas,monospace;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b}</span>
       <button onclick="useBookmark(${i})" style="background:var(--accent);color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:11px;cursor:pointer;font-weight:600">→</button>
       <button onclick="delBookmark(${i})" style="background:#ff5b6e;color:#fff;border:none;border-radius:6px;padding:5px 8px;font-size:11px;cursor:pointer">✕</button>
@@ -1991,7 +2159,6 @@ document.getElementById('bookmarkAdd').addEventListener('click', () => {
     renderBookmarks();
   }
 });
-renderBookmarks();
 
 // ═══════════════════════════════════════════════════════
 //  СПРАВОЧНИК
@@ -2045,8 +2212,9 @@ document.getElementById('pomoStart').addEventListener('click', () => {
       clearInterval(pomoInterval); pomoRunning = false;
       pomoTimeEl.classList.remove('ticking');
       incrementStat('pomo');
-      try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch {}
-      alert(pomoMode === 'work' ? 'Работа завершена!' : 'Отдых завершён!');
+      haptic('success');
+      fireConfetti();
+      showToast(pomoMode === 'work' ? '✓ Работа завершена!' : '✓ Отдых завершён!');
       pomoMode = pomoMode === 'work' ? 'break' : 'work';
       pomoTime = pomoMode === 'work' ? 25*60 : 5*60;
       updatePomo();
@@ -2058,7 +2226,6 @@ document.getElementById('pomoReset').addEventListener('click', () => { clearInte
 document.getElementById('pomoMode25').addEventListener('click', () => { clearInterval(pomoInterval); pomoRunning = false; pomoTimeEl.classList.remove('ticking'); pomoMode = 'work'; pomoTime = 25*60; updatePomo(); });
 document.getElementById('pomoMode5').addEventListener('click', () => { clearInterval(pomoInterval); pomoRunning = false; pomoTimeEl.classList.remove('ticking'); pomoMode = 'break'; pomoTime = 5*60; updatePomo(); });
 document.getElementById('pomoMode50').addEventListener('click', () => { clearInterval(pomoInterval); pomoRunning = false; pomoTimeEl.classList.remove('ticking'); pomoMode = 'work'; pomoTime = 50*60; updatePomo(); });
-updatePomo();
 
 // ═══════════════════════════════════════════════════════
 //  СТАТИСТИКА
@@ -2087,7 +2254,7 @@ function renderStats() {
     days.push({ key, label: ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][d.getDay()], value: (stats.days && stats.days[key]) || 0 });
   }
   const max = Math.max(...days.map(d => d.value), 1);
-  days.forEach((d, idx) => {
+  days.forEach(d => {
     const wrap = document.createElement('div');
     wrap.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end';
     const bar = document.createElement('div');
@@ -2125,13 +2292,7 @@ setupSwitch('soundSwitch', 'sound', false, () => playClick());
 setupSwitch('vibrateSwitch', 'vibrate', true, () => haptic());
 setupSwitch('confettiSwitch', 'confetti', true, (on) => { if (on) fireConfetti(); });
 setupSwitch('bgSwitch', 'bg', true, (on) => {
-  if (on) {
-    document.body.style.setProperty('--glow-1', 'rgba(91,157,255,0.10)');
-    document.body.style.setProperty('--glow-2', 'rgba(124,92,255,0.10)');
-  } else {
-    document.body.style.setProperty('--glow-1', 'transparent');
-    document.body.style.setProperty('--glow-2', 'transparent');
-  }
+  document.body.classList.toggle('no-bg', !on);
 });
 document.getElementById('resetAll').addEventListener('click', () => {
   if (!confirm('Сбросить всё: историю, заметки, закладки, статистику?')) return;
@@ -2148,6 +2309,13 @@ updateScreen();
 memUpdate();
 updateTabsArrows();
 renderGraphFns();
+renderGraphKeys();
+renderGraphPresets();
+renderBookmarks();
+renderConvCategories();
+renderConvUnits();
+convertNow();
+renderMatrixPanel();
 </script>
 </body>
 </html>
