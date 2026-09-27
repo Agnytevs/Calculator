@@ -109,11 +109,12 @@
 
 <script>
 // ═══════════════════════════════════════════════════════
-//  ВЫЧИСЛИТЕЛЬ (порт SafeEval с Python)
+//  ВЫЧИСЛИТЕЛЬ
 // ═══════════════════════════════════════════════════════
 
 const FUNCS = {
   sqrt:  Math.sqrt,
+  cbrt:  Math.cbrt,
   sin:   Math.sin, cos: Math.cos, tan: Math.tan,
   asin:  Math.asin, acos: Math.acos, atan: Math.atan,
   log:   Math.log, log10: Math.log10, log2: Math.log2,
@@ -127,6 +128,104 @@ const FUNCS = {
 const CONSTS = { pi: Math.PI, e: Math.E };
 
 let degreesMode = true;
+
+// ─── Препроцессинг: √, ∛, π, ×, ÷, − ────────────────────
+function preprocess(expr) {
+  let s = expr
+    .replace(/π/g, 'pi')
+    .replace(/×/g, '*')
+    .replace(/÷/g, '/')
+    .replace(/−/g, '-');
+
+  // Обрабатываем √ и ∛ рекурсивно
+  s = replaceRoots(s, '√', 'sqrt');
+  s = replaceRoots(s, '∛', 'cbrt');
+  return s;
+}
+
+function replaceRoots(s, symbol, funcName) {
+  let i = 0;
+  let out = '';
+  while (i < s.length) {
+    if (s[i] !== symbol) { out += s[i]; i++; continue; }
+
+    // нашли корень — читаем аргумент
+    i++; // пропускаем символ
+    let sign = '';
+    if (s[i] === '+' || s[i] === '-') { sign = s[i]; i++; }
+
+    let arg = '';
+    if (s[i] === '(') {
+      // √(...)
+      let depth = 1, j = i + 1;
+      while (j < s.length && depth > 0) {
+        if (s[j] === '(') depth++;
+        else if (s[j] === ')') depth--;
+        j++;
+      }
+      arg = s.slice(i, j);
+      i = j;
+    } else if (s[i] === symbol || s[i] === '√' || s[i] === '∛') {
+      // вложенный корень √√X — рекурсивно
+      const [inner, newI] = readRootArg(s, i, symbol, funcName);
+      arg = `(${inner})`;
+      i = newI;
+    } else if (/[0-9.]/.test(s[i])) {
+      // √число
+      let j = i;
+      while (j < s.length && /[0-9.]/.test(s[j])) j++;
+      arg = s.slice(i, j);
+      i = j;
+    } else if (/[a-zA-Zπ]/.test(s[i])) {
+      // √pi, √e, √sin(...)
+      let j = i;
+      while (j < s.length && /[a-zA-Z0-9_π]/.test(s[j])) j++;
+      arg = s.slice(i, j);
+      i = j;
+      if (s[i] === '(') {
+        let depth = 1, k = i + 1;
+        while (k < s.length && depth > 0) {
+          if (s[k] === '(') depth++;
+          else if (s[k] === ')') depth--;
+          k++;
+        }
+        arg += s.slice(i, k);
+        i = k;
+      }
+    }
+    out += `${funcName}(${sign}${arg})`;
+  }
+  return out;
+}
+
+// вспомогательная для вложенных корней
+function readRootArg(s, i, symbol, funcName) {
+  let sign = '';
+  if (s[i] === '+' || s[i] === '-') { sign = s[i]; i++; }
+  if (s[i] === '√' || s[i] === '∛') {
+    const innerSym = s[i];
+    const innerFunc = innerSym === '√' ? 'sqrt' : 'cbrt';
+    const [inner, newI] = readRootArg(s, i + 1, innerSym, innerFunc);
+    return [`${innerFunc}(${inner})`, newI];
+  }
+  if (s[i] === '(') {
+    let depth = 1, j = i + 1;
+    while (j < s.length && depth > 0) {
+      if (s[j] === '(') depth++;
+      else if (s[j] === ')') depth--;
+      j++;
+    }
+    return [s.slice(i, j), j];
+  }
+  if (/[0-9.]/.test(s[i])) {
+    let j = i;
+    while (j < s.length && /[0-9.]/.test(s[j])) j++;
+    return [s.slice(i, j), j];
+  }
+  let j = i;
+  while (j < s.length && /[a-zA-Z0-9_π]/.test(s[j])) j++;
+  return [s.slice(i, j), j];
+}
 
 // ─── Токенизатор ────────────────────────────────────────
 function tokenize(s) {
@@ -174,7 +273,16 @@ function parse(tokens) {
     while (peek() && (peek().value === '+' || peek().value === '-')) {
       const op = next().value;
       const right = parseMulDiv();
-      left = op === '+' ? left + right : left - right;
+      // процент: A + B% → A + A*B/100
+      if (op === '+' && right && right.__isPct) {
+        left = left + left * right.value / 100;
+      } else if (op === '-' && right && right.__isPct) {
+        left = left - left * right.value / 100;
+      } else if (op === '+') {
+        left = left + right;
+      } else {
+        left = left - right;
+      }
     }
     return left;
   }
@@ -184,27 +292,27 @@ function parse(tokens) {
     while (peek() && (peek().value === '*' || peek().value === '/' || peek().value === '%')) {
       const op = next().value;
       const right = parseUnary();
-      if (op === '*') left = left * right;
-      else if (op === '/') {
-        if (right === 0) throw new Error('На ноль делить нельзя');
-        left = left / right;
+      if (op === '*') {
+        // A * B% → A * B/100
+        if (right && right.__isPct) left = left * right.value / 100;
+        else left = left * right;
+      } else if (op === '/') {
+        // A / B% → A / (B/100)
+        const divisor = (right && right.__isPct) ? right.value / 100 : right;
+        if (divisor === 0) throw new Error('На ноль делить нельзя');
+        left = left / divisor;
       } else {
-        if (right === 0) throw new Error('На ноль делить нельзя');
-        left = left % right;
+        const div = (right && right.__isPct) ? right.value / 100 : right;
+        if (div === 0) throw new Error('На ноль делить нельзя');
+        left = left % div;
       }
     }
     return left;
   }
 
   function parseUnary() {
-    if (peek() && peek().value === '-') {
-      next();
-      return -parseUnary();
-    }
-    if (peek() && peek().value === '+') {
-      next();
-      return parseUnary();
-    }
+    if (peek() && peek().value === '-') { next(); return -parseUnary(); }
+    if (peek() && peek().value === '+') { next(); return parseUnary(); }
     return parsePower();
   }
 
@@ -223,10 +331,9 @@ function parse(tokens) {
     if (!t) throw new Error('Неожиданный конец выражения');
 
     if (t.type === 'num') {
-      // процент: 10% → 0.1
       if (peek() && peek().value === '%') {
         next();
-        return t.value / 100;
+        return { __isPct: true, value: t.value };
       }
       return t.value;
     }
@@ -234,13 +341,18 @@ function parse(tokens) {
     if (t.type === 'name') {
       if (t.value in CONSTS) {
         let val = CONSTS[t.value];
-        if (peek() && peek().value === '%') { next(); val = val / 100; }
+        if (peek() && peek().value === '%') {
+          next();
+          return { __isPct: true, value: val };
+        }
         return val;
       }
       if (t.value in FUNCS) {
         expect('(');
-        const arg = parseExpr();
+        let arg = parseExpr();
         expect(')');
+        // снимаем Pct, если есть
+        if (arg && arg.__isPct) arg = arg.value;
         let fn = FUNCS[t.value];
         if (degreesMode && ['sin','cos','tan'].includes(t.value)) {
           arg = arg * Math.PI / 180;
@@ -249,7 +361,10 @@ function parse(tokens) {
         if (degreesMode && ['asin','acos','atan'].includes(t.value)) {
           res = res * 180 / Math.PI;
         }
-        if (peek() && peek().value === '%') { next(); res = res / 100; }
+        if (peek() && peek().value === '%') {
+          next();
+          return { __isPct: true, value: res };
+        }
         return res;
       }
       throw new Error('Неизвестное имя: ' + t.value);
@@ -258,7 +373,10 @@ function parse(tokens) {
     if (t.value === '(') {
       const val = parseExpr();
       expect(')');
-      if (peek() && peek().value === '%') { next(); return val / 100; }
+      if (peek() && peek().value === '%') {
+        next();
+        return { __isPct: true, value: val };
+      }
       return val;
     }
 
@@ -267,68 +385,9 @@ function parse(tokens) {
 
   const result = parseExpr();
   if (pos < tokens.length) throw new Error('Лишний токен: ' + tokens[pos].value);
+  // если снаружи Pct — превращаем в 0.xx
+  if (result && result.__isPct) return result.value / 100;
   return result;
-}
-
-// ─── Препроцессинг (√, ×, ÷, π, −) ──────────────────────
-function preprocess(expr) {
-  // √X → sqrt(X)
-  let result = '';
-  let i = 0;
-  while (i < expr.length) {
-    if (expr[i] === '√') {
-      // читаем аргумент
-      i++;
-      let arg = '';
-      if (expr[i] === '(') {
-        let depth = 1, j = i + 1;
-        while (j < expr.length && depth > 0) {
-          if (expr[j] === '(') depth++;
-          else if (expr[j] === ')') depth--;
-          j++;
-        }
-        arg = expr.slice(i, j);
-        i = j;
-      } else if (/[0-9.]/.test(expr[i])) {
-        let j = i;
-        while (j < expr.length && /[0-9.]/.test(expr[j])) j++;
-        arg = expr.slice(i, j);
-        i = j;
-      } else if (/[a-zA-Zπ]/.test(expr[i])) {
-        let j = i;
-        while (j < expr.length && /[a-zA-Z0-9_π]/.test(expr[j])) j++;
-        arg = expr.slice(i, j);
-        i = j;
-        // если после имени идёт (...) — захватим
-        if (expr[i] === '(') {
-          let depth = 1, k = i + 1;
-          while (k < expr.length && depth > 0) {
-            if (expr[k] === '(') depth++;
-            else if (expr[k] === ')') depth--;
-            k++;
-          }
-          arg += expr.slice(i, k);
-          i = k;
-        }
-      } else if (expr[i] === '-') {
-        // √-X → sqrt(-X)
-        i++;
-        let j = i;
-        while (j < expr.length && /[0-9.]/.test(expr[j])) j++;
-        arg = '-' + expr.slice(i, j);
-        i = j;
-      }
-      result += 'sqrt(' + arg + ')';
-    } else {
-      result += expr[i];
-      i++;
-    }
-  }
-  return result
-    .replace(/π/g, 'pi')
-    .replace(/×/g, '*')
-    .replace(/÷/g, '/')
-    .replace(/−/g, '-');
 }
 
 function safeEval(expr) {
@@ -336,6 +395,17 @@ function safeEval(expr) {
   const tokens = tokenize(cleaned);
   return parse(tokens);
 }
+
+// ═══════════════════════════════════════════════════════
+//  ФАКТОРИАЛ
+// ═══════════════════════════════════════════════════════
+FUNCS.factorial = (n) => {
+  if (n < 0 || !Number.isInteger(n)) throw new Error('Факториал только для целых ≥ 0');
+  if (n > 170) throw new Error('Слишком большое число');
+  let r = 1;
+  for (let i = 2; i <= n; i++) r *= i;
+  return r;
+};
 
 // ═══════════════════════════════════════════════════════
 //  СОСТОЯНИЕ И UI
@@ -354,9 +424,7 @@ const gridEl   = document.getElementById('grid');
 const histModal = document.getElementById('historyModal');
 const histList  = document.getElementById('historyList');
 
-function updateScreen() {
-  screenEl.textContent = expression || '0';
-}
+function updateScreen() { screenEl.textContent = expression || '0'; }
 
 function fmt(value) {
   if (typeof value === 'number') {
@@ -368,7 +436,7 @@ function fmt(value) {
 
 function insert(text) {
   if (resultShown) {
-    if (/^[0-9.(a-zA-Z√π]/.test(text)) expression = '';
+    if (/^[0-9.(a-zA-Z√∛π]/.test(text)) expression = '';
     resultShown = false;
   }
   if (expression.length + text.length > 120) return;
@@ -376,31 +444,19 @@ function insert(text) {
   updateScreen();
 }
 
-function onClear() {
-  expression = ''; resultShown = false;
-  hintEl.textContent = '';
-  updateScreen();
-}
-
-function onBackspace() {
-  expression = expression.slice(0, -1);
-  resultShown = false;
-  updateScreen();
-}
-
+function onClear() { expression = ''; resultShown = false; hintEl.textContent = ''; updateScreen(); }
+function onBackspace() { expression = expression.slice(0, -1); resultShown = false; updateScreen(); }
 function onNegate() {
   if (!expression) expression = '-';
   else if (expression.startsWith('-')) expression = expression.slice(1);
   else expression = '-' + expression;
   updateScreen();
 }
-
 function onFactorial() {
   if (resultShown) resultShown = false;
   expression = expression ? `fact(${expression})` : 'fact(';
   updateScreen();
 }
-
 function onInverse() {
   if (!expression) return;
   resultShown = false;
@@ -411,15 +467,12 @@ function onInverse() {
 function onEquals() {
   if (!expression) return;
   try {
-    // автозакрытие скобок
     const open = (expression.match(/\(/g) || []).length;
     const close = (expression.match(/\)/g) || []).length;
-    const expr = expression + ')'.repeat(Math.max(0, open - close));
+    let expr = expression + ')'.repeat(Math.max(0, open - close));
+    expr = expr.replace(/fact\(/g, 'factorial(');
 
-    // fact() — спецфункция
-    let prepared = expr.replace(/fact\(/g, 'factorial(');
-
-    const result = safeEval(prepared);
+    const result = safeEval(expr);
     if (typeof result !== 'number' || Number.isNaN(result) || !Number.isFinite(result)) {
       throw new Error('Результат не определён');
     }
@@ -442,9 +495,7 @@ function toggleDegrees() {
   modeEl.textContent = degreesMode ? 'DEG' : 'RAD';
 }
 
-function memUpdate() {
-  memEl.textContent = memory ? 'M: ' + fmt(memory) : '';
-}
+function memUpdate() { memEl.textContent = memory ? 'M: ' + fmt(memory) : ''; }
 function memClear()  { memory = 0; memUpdate(); }
 function memRecall() { if (resultShown) resultShown = false; expression += fmt(memory); updateScreen(); }
 function memAdd()    { try { const v = expression ? safeEval(preprocess(expression)) : 0; memory += v; memUpdate(); } catch(e){} }
@@ -472,16 +523,16 @@ const BUTTONS = [
   ['(',   'ctrl', () => insert('(')],
 
   ['√',   'fn', () => insert('√(')],
+  ['∛',   'fn', () => insert('∛(')],
   ['x²',  'fn', () => insert('^2')],
   ['xʸ',  'fn', () => insert('^')],
   ['%',   'fn', () => insert('%')],
-  [')',   'ctrl', () => insert(')')],
 
   ['log', 'fn', () => insert('log10(')],
   ['ln',  'fn', () => insert('log(')],
   ['n!',  'fn', onFactorial],
   ['π',   'fn', () => insert('π')],
-  ['e',   'fn', () => insert('e')],
+  [')',   'ctrl', () => insert(')')],
 
   ['7',   'num', () => insert('7')],
   ['8',   'num', () => insert('8')],
@@ -507,15 +558,6 @@ const BUTTONS = [
   ['+',   'op',  () => insert('+')],
   ['Hist','teal', showHistory],
 ];
-
-// добавляем факториал как функцию
-FUNCS.factorial = (n) => {
-  if (n < 0 || !Number.isInteger(n)) throw new Error('Факториал только для целых ≥ 0');
-  if (n > 170) throw new Error('Слишком большое число');
-  let r = 1;
-  for (let i = 2; i <= n; i++) r *= i;
-  return r;
-};
 
 BUTTONS.forEach(([label, cls, fn]) => {
   const b = document.createElement('button');
