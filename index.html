@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#0e1116">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.json">
 <title>Калькулятор Pro MAX</title>
 <style>
   :root {
@@ -25,15 +27,20 @@
   html.light {
     --bg:#eef1f7; --bg-elev:#ffffff; --bg-elev-2:#e2e7ef; --bg-panel:#ffffff;
     --border:#d1d8e3; --text:#1a2028; --text-dim:#5b6473; --text-mute:#8b95a5;
-    --accent:#3a7fe0; --accent-2:#6a4ce0;
     --btn-num-bg:#ffffff; --btn-num-text:#1a2028;
     --btn-op-bg:#dcd0f5; --btn-op-text:#5b3fa0;
     --btn-fn-bg:#d4defc; --btn-fn-text:#2a4d99;
     --btn-ctrl-bg:#e2e7ef; --btn-ctrl-text:#5b6473;
     --shadow:0 4px 20px rgba(20,30,60,0.08);
-    --glow-1:rgba(58,127,224,0.08);
-    --glow-2:rgba(106,76,224,0.08);
   }
+  /* Акцентные цвета (из выбранной темы) */
+  html.theme-emerald { --accent:#3ecf8e; --accent-2:#22a06b; --glow-1:rgba(62,207,142,0.10); --glow-2:rgba(34,160,107,0.10); }
+  html.theme-rose    { --accent:#ff5b6e; --accent-2:#d63a4d; --glow-1:rgba(255,91,110,0.10); --glow-2:rgba(214,58,77,0.10); }
+  html.theme-amber   { --accent:#ffb454; --accent-2:#f39c12; --glow-1:rgba(255,180,84,0.10); --glow-2:rgba(243,156,18,0.10); }
+  html.theme-teal    { --accent:#2dd4bf; --accent-2:#189e8e; --glow-1:rgba(45,212,191,0.10); --glow-2:rgba(24,158,142,0.10); }
+  html.theme-violet  { --accent:#a78bfa; --accent-2:#7c5cff; --glow-1:rgba(167,139,250,0.10); --glow-2:rgba(124,92,255,0.10); }
+  html.theme-pink    { --accent:#f472b6; --accent-2:#db2777; --glow-1:rgba(244,114,182,0.10); --glow-2:rgba(219,39,119,0.10); }
+
   * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
   html, body {
     height:100%; overflow:hidden;
@@ -42,26 +49,20 @@
     user-select:none; -webkit-user-select:none;
     -webkit-font-smoothing:antialiased;
     transition:background 0.4s, color 0.4s;
+    overscroll-behavior:none;
   }
   body::before, body::after {
     content:''; position:fixed; inset:-20%;
     pointer-events:none; z-index:0;
     background:radial-gradient(600px 500px at 30% 20%, var(--glow-1), transparent 60%);
     animation:float1 18s ease-in-out infinite;
-    will-change:transform;
   }
   body::after {
     background:radial-gradient(500px 400px at 80% 80%, var(--glow-2), transparent 60%);
     animation:float2 22s ease-in-out infinite;
   }
-  @keyframes float1 {
-    0%,100% { transform:translate(0,0) scale(1); }
-    50% { transform:translate(4%, 3%) scale(1.08); }
-  }
-  @keyframes float2 {
-    0%,100% { transform:translate(0,0) scale(1); }
-    50% { transform:translate(-5%, -3%) scale(1.12); }
-  }
+  @keyframes float1 { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(4%, 3%) scale(1.08); } }
+  @keyframes float2 { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(-5%, -3%) scale(1.12); } }
   html.light body::before, html.light body::after { opacity:0.5; }
   body.no-bg::before, body.no-bg::after { display:none; }
 
@@ -70,14 +71,10 @@
     display:flex; flex-direction:column;
     height:100vh; height:100dvh;
     padding:8px 8px calc(8px + env(safe-area-inset-bottom));
-    gap:6px; max-width:600px; margin:0 auto;
-    animation:appEnter 0.4s cubic-bezier(0.2, 0.9, 0.3, 1);
-  }
-  @keyframes appEnter {
-    from { opacity:0; transform:translateY(8px); }
-    to   { opacity:1; transform:translateY(0); }
+    gap:6px; max-width:640px; margin:0 auto;
   }
 
+  /* ── Вкладки со свайпом ── */
   .tabs-wrap {
     display:flex; align-items:center; gap:2px;
     background:var(--bg-elev); border:1px solid var(--border);
@@ -96,7 +93,9 @@
   .tabs {
     flex:1; display:flex; gap:2px;
     overflow-x:auto; scrollbar-width:none; scroll-behavior:smooth;
+    cursor:grab;
   }
+  .tabs.dragging { cursor:grabbing; scroll-behavior:auto; }
   .tabs::-webkit-scrollbar { display:none; }
   .tabs button {
     flex:0 0 auto;
@@ -110,26 +109,32 @@
   .tabs button.active {
     background:linear-gradient(135deg, var(--accent), var(--accent-2));
     color:#fff;
-    box-shadow:0 2px 12px rgba(91,157,255,0.45);
+    box-shadow:0 2px 12px var(--glow-1);
     animation:tabPop 0.3s cubic-bezier(0.4, 1.6, 0.5, 1);
   }
   @keyframes tabPop {
-    0% { transform:scale(0.94); }
-    60% { transform:scale(1.04); }
-    100% { transform:scale(1); }
+    0% { transform:scale(0.94); } 60% { transform:scale(1.04); } 100% { transform:scale(1); }
   }
+
+  /* ── Панели со свайпом ── */
+  .panels-viewport {
+    flex:1; overflow:hidden; position:relative; min-height:0;
+  }
+  .panels-track {
+    display:flex; height:100%;
+    transition:transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
+    will-change:transform;
+  }
+  .panels-track.no-transition { transition:none; }
   .panel {
-    display:none; flex:1; flex-direction:column; gap:6px;
-    min-height:0; overflow-y:auto; padding-right:2px;
+    flex:0 0 100%; min-width:100%;
+    display:flex; flex-direction:column; gap:6px;
+    overflow-y:auto; padding-right:2px;
+    padding-bottom:4px;
   }
-  .panel.active {
-    display:flex;
-    animation:panelEnter 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
-  }
-  @keyframes panelEnter {
-    from { opacity:0; transform:translateY(10px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
+  .panel::-webkit-scrollbar { width:5px; }
+  .panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
   .topbar {
     display:flex; justify-content:space-between; align-items:center;
     padding:0 6px; font-size:12px; font-weight:600; min-height:22px;
@@ -139,22 +144,18 @@
     padding:3px 10px; border-radius:20px;
     animation:memPulse 2s ease-in-out infinite;
   }
-  @keyframes memPulse {
-    0%,100% { opacity:1; }
-    50% { opacity:0.6; }
-  }
+  @keyframes memPulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
   #memLabel:empty { display:none; animation:none; }
   .topbar-right { display:flex; gap:6px; align-items:center; }
   .pill {
-    color:var(--accent); background:rgba(91,157,255,0.12);
+    color:var(--accent); background:var(--glow-1);
     padding:4px 10px; border-radius:20px; cursor:pointer; font-size:12px;
     transition:background 0.2s, transform 0.1s, color 0.2s;
     user-select:none;
   }
-  .pill:hover { background:rgba(91,157,255,0.22); }
+  .pill:hover { background:var(--glow-2); }
   .pill:active { transform:scale(0.92); }
   .pill.theme { color:var(--warning); background:rgba(255,180,84,0.12); }
-  .pill.theme:hover { background:rgba(255,180,84,0.22); }
   #themeBtn { transition:transform 0.4s cubic-bezier(0.4, 1.6, 0.5, 1); display:inline-block; }
   #themeBtn.spin { transform:rotate(360deg); }
 
@@ -164,13 +165,13 @@
     display:flex; flex-direction:column; justify-content:center;
     min-height:96px;
     box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,0.03);
-    transition:background 0.4s, border-color 0.4s, box-shadow 0.3s;
     position:relative; overflow:hidden;
+    transition:background 0.4s, border-color 0.4s;
   }
   .display.flash { animation:flashScreen 0.5s ease; }
   @keyframes flashScreen {
-    0% { box-shadow:var(--shadow), 0 0 0 0 rgba(91,157,255,0.5); }
-    100% { box-shadow:var(--shadow), 0 0 0 18px rgba(91,157,255,0); }
+    0% { box-shadow:var(--shadow), 0 0 0 0 var(--glow-1); }
+    100% { box-shadow:var(--shadow), 0 0 0 18px transparent; }
   }
   #screen {
     font-size:36px; font-weight:500; font-variant-numeric:tabular-nums;
@@ -179,16 +180,11 @@
     transition:color 0.2s, transform 0.15s;
   }
   #screen.bump { animation:screenBump 0.25s cubic-bezier(0.4, 1.6, 0.5, 1); }
-  @keyframes screenBump {
-    0% { transform:scale(1); }
-    50% { transform:scale(1.04); }
-    100% { transform:scale(1); }
-  }
+  @keyframes screenBump { 0% { transform:scale(1); } 50% { transform:scale(1.04); } 100% { transform:scale(1); } }
   #screen.success { color:var(--success); }
   #screen.error { color:var(--danger); animation:shake 0.4s ease; }
   @keyframes shake {
-    0%,100% { transform:translateX(0); }
-    20%,60% { transform:translateX(-6px); }
+    0%,100% { transform:translateX(0); } 20%,60% { transform:translateX(-6px); }
     40%,80% { transform:translateX(6px); }
   }
   #hint {
@@ -196,7 +192,6 @@
     min-height:16px; margin-top:5px;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     font-variant-numeric:tabular-nums;
-    transition:color 0.2s;
   }
 
   .grid {
@@ -209,7 +204,7 @@
     font-size:15.5px; font-weight:600; color:var(--text);
     font-family:inherit; cursor:pointer;
     transition:transform 0.1s cubic-bezier(0.4, 1.6, 0.5, 1),
-               filter 0.15s, background 0.4s, color 0.4s, box-shadow 0.15s;
+               filter 0.15s, background 0.4s, color 0.4s;
     padding:0; min-height:0;
     display:flex; align-items:center; justify-content:center;
     box-shadow:inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 2px rgba(0,0,0,0.3);
@@ -236,7 +231,7 @@
   .red   { background:linear-gradient(135deg,#ff5b6e,#d63a4d); color:#fff; }
   .green { background:linear-gradient(135deg,#3ecf8e,#22a06b); color:#fff; font-size:19px; }
   .teal  { background:linear-gradient(135deg,#2dd4bf,#189e8e); color:#04231f; font-size:12.5px; }
-  .blue  { background:linear-gradient(135deg,var(--accent),#3a7fe0); color:#fff; font-size:12.5px; }
+  .blue  { background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; font-size:12.5px; }
 
   .card {
     background:var(--bg-panel); border:1px solid var(--border);
@@ -257,25 +252,22 @@
   }
   .card textarea:focus, .card input:focus, .card select:focus {
     outline:none; border-color:var(--accent);
-    box-shadow:0 0 0 3px rgba(91,157,255,0.18);
+    box-shadow:0 0 0 3px var(--glow-1);
   }
   .card textarea { min-height:80px; resize:vertical; font-family:'SF Mono',Consolas,monospace; font-size:14px; }
   .btn {
-    background:linear-gradient(135deg,var(--accent),#3a7fe0);
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
     border:none; color:#fff; font-weight:700; font-size:14px;
     padding:12px 16px; border-radius:var(--radius-sm);
     cursor:pointer; font-family:inherit;
     transition:transform 0.12s, filter 0.15s, box-shadow 0.2s;
     position:relative; overflow:hidden;
   }
-  .btn:hover { filter:brightness(1.1); box-shadow:0 4px 14px rgba(91,157,255,0.3); }
+  .btn:hover { filter:brightness(1.1); box-shadow:0 4px 14px var(--glow-1); }
   .btn:active { transform:scale(0.97); }
   .btn.success { background:linear-gradient(135deg,var(--success),#22a06b); }
-  .btn.success:hover { box-shadow:0 4px 14px rgba(62,207,142,0.3); }
   .btn.danger  { background:linear-gradient(135deg,#ff5b6e,#d63a4d); }
-  .btn.danger:hover { box-shadow:0 4px 14px rgba(255,91,110,0.3); }
   .btn.ghost   { background:var(--bg-elev-2); color:var(--text); }
-  .btn.ghost:hover { box-shadow:none; }
   .btn-row { display:flex; gap:6px; flex-wrap:wrap; }
   .btn-row .btn { flex:1 1 auto; }
   .output {
@@ -292,6 +284,12 @@
     100% { box-shadow:0 0 0 12px rgba(62,207,142,0); }
   }
   .output.err { border-color:var(--danger); color:var(--danger); animation:shake 0.4s ease; }
+  .output.update { animation:resultUpdate 0.4s cubic-bezier(0.4, 1.6, 0.5, 1); }
+  @keyframes resultUpdate {
+    0% { transform:scale(1); }
+    50% { transform:scale(1.02); background:var(--glow-1); }
+    100% { transform:scale(1); }
+  }
 
   .modal {
     display:none; position:fixed; inset:0;
@@ -303,7 +301,7 @@
   @keyframes fadeIn { from{opacity:0} to{opacity:1} }
   .modal-box {
     background:var(--bg-elev); border:1px solid var(--border);
-    border-radius:var(--radius); width:100%; max-width:440px;
+    border-radius:var(--radius); width:100%; max-width:480px;
     max-height:85vh; display:flex; flex-direction:column; overflow:hidden;
     box-shadow:0 20px 60px rgba(0,0,0,0.6);
     animation:slideUp 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
@@ -316,12 +314,11 @@
   .modal-content { flex:1; overflow-y:auto; padding:14px 18px; font-size:14px; line-height:1.7; }
   .modal-content .empty { color:var(--text-mute); font-style:italic; }
   .modal-btn {
-    background:linear-gradient(135deg,var(--accent),#3a7fe0);
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
     border:none; padding:13px; font-size:14px; font-weight:700;
     color:#fff; cursor:pointer; width:100%; font-family:inherit;
     transition:filter 0.15s;
   }
-  .modal-btn:hover { filter:brightness(1.1); }
   .modal-btn.red { background:linear-gradient(135deg,#ff5b6e,#d63a4d); border-top:1px solid var(--border); }
 
   /* Графики */
@@ -329,15 +326,8 @@
     position:relative; background:var(--bg-panel);
     border:1px solid var(--border); border-radius:var(--radius);
     padding:6px; box-shadow:var(--shadow); overflow:hidden;
-    flex:0 0 auto;
   }
-  #graphCanvas {
-    width:100%; height:auto; display:block;
-    border-radius:8px;
-    touch-action:none; cursor:grab;
-    transition:box-shadow 0.2s;
-  }
-  #graphCanvas:hover { box-shadow:0 0 0 2px rgba(91,157,255,0.2); }
+  #graphCanvas { width:100%; height:auto; display:block; border-radius:8px; touch-action:none; cursor:grab; }
   #graphCanvas.dragging { cursor:grabbing; }
   .graph-info {
     display:flex; justify-content:space-between;
@@ -349,56 +339,79 @@
   .graph-fn-row .color-dot {
     flex:0 0 auto; width:14px; height:14px; border-radius:50%;
     border:2px solid var(--border); cursor:pointer;
-    transition:transform 0.15s;
   }
-  .graph-fn-row .color-dot:active { transform:scale(0.85); }
   .graph-fn-row input[type="text"] {
     flex:1; background:var(--bg-elev); color:var(--text);
     border:1px solid var(--border); border-radius:var(--radius-sm);
     padding:10px 12px; font-size:15px; font-family:inherit;
     font-variant-numeric:tabular-nums;
   }
-  .graph-fn-row input[type="text"]:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(91,157,255,0.18); }
   .graph-fn-row .del-btn {
     flex:0 0 auto; background:transparent; color:var(--text-dim);
     border:none; font-size:18px; cursor:pointer; padding:6px 10px;
-    transition:color 0.15s, transform 0.15s;
   }
-  .graph-fn-row .del-btn:hover { color:var(--danger); }
-  .graph-fn-row .del-btn:active { transform:scale(0.85); }
-  .graph-fn-row .del-btn:disabled { opacity:0.3; cursor:not-allowed; }
-
-  .graph-keys {
-    display:grid; grid-template-columns:repeat(6, 1fr); gap:5px;
-  }
+  .graph-fn-row .del-btn:disabled { opacity:0.3; }
+  .graph-keys { display:grid; grid-template-columns:repeat(6, 1fr); gap:5px; }
   .graph-keys button {
     padding:11px 4px; font-size:13.5px; font-weight:600;
     background:var(--btn-num-bg); color:var(--btn-num-text);
     border:none; border-radius:9px; cursor:pointer; font-family:inherit;
-    transition:transform 0.1s, filter 0.15s;
-    font-variant-numeric:tabular-nums;
     position:relative; overflow:hidden;
   }
-  .graph-keys button:hover { filter:brightness(1.15); }
   .graph-keys button:active { transform:scale(0.94); }
-  .graph-keys button.op { background:var(--btn-op-bg); color:var(--btn-op-text); font-size:16px; }
+  .graph-keys button.op { background:var(--btn-op-bg); color:var(--btn-op-text); }
   .graph-keys button.fn { background:var(--btn-fn-bg); color:var(--btn-fn-text); font-size:12.5px; }
   .graph-keys button.ctrl { background:var(--btn-ctrl-bg); color:var(--btn-ctrl-text); }
   .graph-keys button.green { background:linear-gradient(135deg,#3ecf8e,#22a06b); color:#fff; }
   .graph-keys button.red { background:linear-gradient(135deg,#ff5b6e,#d63a4d); color:#fff; }
-
-  .graph-presets {
-    display:grid; grid-template-columns:repeat(4, 1fr); gap:5px;
-    margin-top:6px;
-  }
+  .graph-presets { display:grid; grid-template-columns:repeat(4, 1fr); gap:5px; }
   .graph-presets button {
     padding:9px 4px; font-size:12px; font-weight:600;
     background:var(--bg-elev-2); color:var(--text);
     border:none; border-radius:9px; cursor:pointer; font-family:inherit;
-    transition:transform 0.1s, background 0.2s;
   }
   .graph-presets button:hover { background:var(--accent); color:#fff; }
-  .graph-presets button:active { transform:scale(0.94); }
+
+  /* Программисту */
+  .bit-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:5px; }
+  .bit-grid button {
+    padding:12px 4px; font-size:13px; font-weight:600;
+    background:var(--btn-fn-bg); color:var(--btn-fn-text);
+    border:none; border-radius:9px; cursor:pointer; font-family:inherit;
+  }
+  .bit-grid button:active { transform:scale(0.94); }
+
+  /* Таблицы */
+  .value-table {
+    width:100%; border-collapse:collapse; font-size:13px;
+    font-variant-numeric:tabular-nums;
+  }
+  .value-table th, .value-table td {
+    padding:6px 8px; text-align:left; border-bottom:1px solid var(--border);
+  }
+  .value-table th { color:var(--text-mute); font-weight:700; font-size:11px; text-transform:uppercase; }
+  .value-table tr:last-child td { border-bottom:none; }
+
+  /* Тема picker */
+  .theme-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
+  .theme-swatch {
+    aspect-ratio:1; border-radius:12px; cursor:pointer;
+    border:3px solid transparent; transition:transform 0.15s, border-color 0.2s;
+    position:relative;
+  }
+  .theme-swatch:hover { transform:scale(1.05); }
+  .theme-swatch.active { border-color:var(--text); }
+  .theme-swatch::after {
+    content:'✓'; position:absolute; inset:0; display:flex; align-items:center;
+    justify-content:center; color:#fff; font-size:22px; font-weight:bold;
+    opacity:0; transition:opacity 0.2s;
+  }
+  .theme-swatch.active::after { opacity:1; }
+  .custom-color-row { display:flex; gap:8px; align-items:center; margin-top:10px; }
+  .custom-color-row input[type="color"] {
+    width:56px; height:44px; padding:2px; border-radius:10px;
+    border:1px solid var(--border); cursor:pointer; background:var(--bg-elev);
+  }
 
   /* Матрицы */
   .mtx-pair { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
@@ -406,11 +419,10 @@
     background:var(--bg-panel); border:1px solid var(--border);
     border-radius:var(--radius); padding:10px;
     display:flex; flex-direction:column; gap:8px;
-    transition:background 0.4s;
   }
   .mtx-card-head { display:flex; justify-content:space-between; align-items:center; font-size:12px; }
   .mtx-card-head .name {
-    color:var(--accent); background:rgba(91,157,255,0.12);
+    color:var(--accent); background:var(--glow-1);
     padding:2px 10px; border-radius:20px; font-weight:700;
   }
   .mtx-card-head .size { color:var(--text-mute); font-size:11px; }
@@ -428,14 +440,10 @@
     padding:8px; font-size:12px; font-weight:600; font-family:inherit;
     background:var(--bg-elev-2); color:var(--text);
     border:none; border-radius:8px; cursor:pointer;
-    transition:background 0.15s, transform 0.1s;
   }
-  .mtx-edit:hover { background:var(--accent); color:#fff; }
-  .mtx-edit:active { transform:scale(0.96); }
   .mtx-ops {
     background:var(--bg-panel); border:1px solid var(--border);
     border-radius:var(--radius); padding:10px;
-    transition:background 0.4s;
   }
   .mtx-ops-title {
     font-size:11px; text-transform:uppercase; letter-spacing:0.5px;
@@ -446,23 +454,17 @@
     padding:10px 4px; font-size:12px; font-weight:600;
     background:var(--bg-elev-2); color:var(--text);
     border:none; border-radius:8px; cursor:pointer; font-family:inherit;
-    transition:background 0.15s, transform 0.1s;
   }
-  .mtx-ops-row button:hover { background:var(--accent); color:#fff; }
-  .mtx-ops-row button:active { transform:scale(0.94); }
   .mtx-ops-row button.success { background:linear-gradient(135deg,var(--success),#22a06b); color:#fff; }
-  .mtx-ops-row button.success:hover { filter:brightness(1.1); }
   .mtx-result {
     background:var(--bg-panel); border:1px solid var(--success);
     border-radius:var(--radius); padding:12px 16px;
     font-family:'SF Mono',Consolas,monospace; font-size:13px;
-    overflow-x:auto;
-    animation:okPulse 0.6s ease;
+    overflow-x:auto; animation:okPulse 0.6s ease;
   }
   .mtx-result .label {
     font-size:11px; text-transform:uppercase; letter-spacing:0.5px;
     color:var(--success); margin-bottom:6px; font-weight:700;
-    font-family:inherit;
   }
   .mtx-result table { border-collapse:collapse; }
   .mtx-result td { padding:3px 8px; text-align:right; border-right:1px solid var(--border); }
@@ -478,12 +480,9 @@
     border:none; border-radius:20px;
     font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:inherit; white-space:nowrap;
-    transition:background 0.2s, color 0.2s, transform 0.1s;
   }
-  .conv-cats button:active { transform:scale(0.94); }
   .conv-cats button.active {
     background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff;
-    box-shadow:0 2px 10px rgba(91,157,255,0.35);
   }
   .conv-field .lbl {
     font-size:11px; text-transform:uppercase; letter-spacing:0.5px;
@@ -507,7 +506,6 @@
     background:var(--bg-elev); border-radius:var(--radius-sm);
     padding:12px 14px; display:flex; justify-content:space-between;
     align-items:center; gap:8px;
-    transition:background 0.4s;
   }
   .conv-result .val {
     font-size:22px; font-weight:700; color:var(--success);
@@ -521,15 +519,10 @@
     text-align:center; font-size:42px; font-weight:700;
     color:var(--accent);
     font-family:'SF Mono',Consolas,monospace;
-    margin:8px 0;
-    font-variant-numeric:tabular-nums;
-    transition:color 0.3s;
+    margin:8px 0; font-variant-numeric:tabular-nums;
   }
   .pomo-display.ticking { animation:tick 1s ease infinite; }
-  @keyframes tick {
-    0%,100% { opacity:1; }
-    50% { opacity:0.7; }
-  }
+  @keyframes tick { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
   .pomo-mode { text-align:center; color:var(--text-dim); font-size:13px; margin-bottom:8px; }
 
   /* Справочник */
@@ -540,9 +533,9 @@
     display:flex; flex-direction:column; gap:2px;
     transition:background 0.2s, transform 0.1s;
   }
-  .ref-item:hover { background:var(--accent); color:#fff; transform:translateY(-1px); }
+  .ref-item:hover { background:var(--accent); color:#fff; }
   .ref-item:active { transform:scale(0.97); }
-  .ref-item .name { font-weight:700; color:var(--accent); transition:color 0.2s; }
+  .ref-item .name { font-weight:700; color:var(--accent); }
   .ref-item:hover .name { color:#fff; }
   .ref-item .val { color:var(--text-dim); font-size:11px; }
 
@@ -551,9 +544,7 @@
   .stat-item {
     background:var(--bg-elev-2); border-radius:var(--radius-sm);
     padding:12px 8px; text-align:center;
-    transition:transform 0.15s;
   }
-  .stat-item:hover { transform:translateY(-2px); }
   .stat-item .num {
     font-size:22px; font-weight:700; color:var(--accent);
     background:none; font-variant-numeric:tabular-nums;
@@ -561,11 +552,7 @@
   .stat-item .lbl { font-size:11px; color:var(--text-mute); margin-top:4px; }
   .bar { transition:height 0.5s cubic-bezier(0.2, 0.9, 0.3, 1); }
 
-  /* Конфетти */
-  #confetti {
-    position:fixed; inset:0; pointer-events:none; z-index:999;
-    overflow:hidden;
-  }
+  #confetti { position:fixed; inset:0; pointer-events:none; z-index:999; overflow:hidden; }
   .confetti-piece {
     position:absolute; width:8px; height:14px; border-radius:2px;
     animation:confettiFall 2s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
@@ -575,14 +562,11 @@
     100% { transform:translateY(100vh) rotateZ(720deg); opacity:0; }
   }
 
-  .toggle-row {
-    display:flex; justify-content:space-between; align-items:center;
-    padding:10px 0; font-size:14px;
-  }
+  .toggle-row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; font-size:14px; }
   .switch {
     position:relative; width:44px; height:26px;
     background:var(--bg-elev-2); border-radius:13px;
-    cursor:pointer; transition:background 0.25s;
+    cursor:pointer; transition:background 0.25s; flex:0 0 auto;
   }
   .switch::after {
     content:''; position:absolute; top:3px; left:3px;
@@ -617,6 +601,7 @@
     #screen { font-size:28px; }
     .mtx-pair { grid-template-columns:1fr; }
     .stat-grid { grid-template-columns:1fr 1fr; }
+    .theme-grid { grid-template-columns:repeat(3, 1fr); }
   }
 </style>
 </head>
@@ -625,283 +610,12 @@
 
   <div class="tabs-wrap">
     <button class="tabs-arrow hidden" id="tabsLeft">‹</button>
-    <div class="tabs" id="tabsScroll">
-      <button data-tab="basic" class="active">🔢 Калькулятор</button>
-      <button data-tab="eq">🧩 Уравнения</button>
-      <button data-tab="graph">📈 Графики</button>
-      <button data-tab="matrix">▦ Матрицы</button>
-      <button data-tab="convert">↔ Конвертер</button>
-      <button data-tab="calc">🧪 Производные</button>
-      <button data-tab="notes">📝 Заметки</button>
-      <button data-tab="ref">📚 Справочник</button>
-      <button data-tab="pomo">⏱ Pomodoro</button>
-      <button data-tab="stats">📊 Статистика</button>
-      <button data-tab="settings">⚙️ Настройки</button>
-    </div>
+    <div class="tabs" id="tabsScroll"></div>
     <button class="tabs-arrow" id="tabsRight">›</button>
   </div>
 
-  <!-- ═══════ КАЛЬКУЛЯТОР ═══════ -->
-  <div class="panel active" data-panel="basic">
-    <div class="topbar">
-      <span id="memLabel"></span>
-      <div class="topbar-right">
-        <span class="pill" id="undoBtn" title="Отменить">↶</span>
-        <span class="pill" id="redoBtn" title="Повторить">↷</span>
-        <span class="pill theme" id="themeBtn">🌙</span>
-        <span class="pill" id="modeBtn">DEG</span>
-      </div>
-    </div>
-    <div class="display" id="display">
-      <div id="screen">0</div>
-      <div id="hint"></div>
-    </div>
-    <div class="grid" id="grid"></div>
-  </div>
-
-  <!-- ═══════ УРАВНЕНИЯ ═══════ -->
-  <div class="panel" data-panel="eq">
-    <div class="card">
-      <h3>Линейное: ax + b = 0</h3>
-      <div class="btn-row" style="margin-bottom:8px;">
-        <input type="number" id="linA" value="2" placeholder="a" style="flex:1">
-        <span style="align-self:center;color:var(--text-dim)">x +</span>
-        <input type="number" id="linB" value="-8" placeholder="b" style="flex:1">
-        <span style="align-self:center;color:var(--text-dim)">= 0</span>
-      </div>
-      <button class="btn" id="solveLin">Решить</button>
-      <div class="output" id="linOut" style="margin-top:10px;">Ответ появится здесь</div>
-    </div>
-    <div class="card">
-      <h3>Квадратное: ax² + bx + c = 0</h3>
-      <div class="btn-row" style="margin-bottom:8px;">
-        <input type="number" id="sqA" value="1" placeholder="a" style="flex:1">
-        <input type="number" id="sqB" value="-3" placeholder="b" style="flex:1">
-        <input type="number" id="sqC" value="2" placeholder="c" style="flex:1">
-      </div>
-      <button class="btn" id="solveSq">Решить</button>
-      <div class="output" id="sqOut" style="margin-top:10px;">Ответ появится здесь</div>
-    </div>
-    <div class="card">
-      <h3>Система 2×2</h3>
-      <div class="btn-row" style="margin-bottom:6px;">
-        <input type="number" id="sysA1" value="2" placeholder="a₁" style="flex:1">
-        <input type="number" id="sysB1" value="3" placeholder="b₁" style="flex:1">
-        <input type="number" id="sysC1" value="8" placeholder="c₁" style="flex:1">
-      </div>
-      <div class="btn-row" style="margin-bottom:8px;">
-        <input type="number" id="sysA2" value="1" placeholder="a₂" style="flex:1">
-        <input type="number" id="sysB2" value="-1" placeholder="b₂" style="flex:1">
-        <input type="number" id="sysC2" value="-1" placeholder="c₂" style="flex:1">
-      </div>
-      <button class="btn" id="solveSys">Решить</button>
-      <div class="output" id="sysOut" style="margin-top:10px;">Ответ появится здесь</div>
-    </div>
-  </div>
-
-  <!-- ═══════ ГРАФИКИ ═══════ -->
-  <div class="panel" data-panel="graph">
-
-    <!-- График сверху, всегда виден -->
-    <div class="graph-wrap">
-      <canvas id="graphCanvas"></canvas>
-      <div class="graph-info">
-        <span id="graphRangeX">x ∈ [−10, 10]</span>
-        <span id="graphRangeY">y ∈ [−10, 10]</span>
-      </div>
-    </div>
-
-    <!-- Компактная панель управления -->
-    <div class="card" style="padding:10px;">
-      <div style="display:flex;gap:6px;align-items:center;">
-        <button class="btn success" id="graphDraw" style="flex:1;">Построить</button>
-        <button class="btn ghost" id="graphAuto" title="Авто-масштаб" style="flex:0 0 44px;">⛶</button>
-        <button class="btn ghost" id="graphZoomIn" style="flex:0 0 44px;">+</button>
-        <button class="btn ghost" id="graphZoomOut" style="flex:0 0 44px;">−</button>
-        <button class="btn ghost" id="graphReset" style="flex:0 0 44px;">⟲</button>
-        <button class="btn ghost" id="graphShare" title="Скачать PNG" style="flex:0 0 44px;">⬇</button>
-      </div>
-    </div>
-
-    <!-- Сворачиваемая секция -->
-    <div class="card" style="padding:0;overflow:hidden;">
-      <button id="graphPanelToggle" style="width:100%;background:transparent;border:none;color:var(--text);padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;justify-content:space-between;align-items:center;">
-        <span>⚙️ Настройка функций и ввод</span>
-        <span id="graphPanelArrow" style="transition:transform 0.25s;display:inline-block;">▾</span>
-      </button>
-
-      <div id="graphPanelBody" style="padding:0 14px 14px;display:none;">
-        <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin:8px 0 6px;">Функции</div>
-        <div id="graphFns"></div>
-        <button class="btn ghost" id="graphAddFn" style="width:100%;margin-top:6px;">+ Добавить функцию</button>
-
-        <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin:12px 0 6px;">Быстрые пресеты</div>
-        <div class="graph-presets" id="graphPresets"></div>
-
-        <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin:12px 0 6px;">Ввод</div>
-        <div class="graph-keys" id="graphKeys"></div>
-
-        <div class="card" style="padding:10px;margin-top:12px;box-shadow:none;background:var(--bg-elev);">
-          <div style="font-size:12px;color:var(--text-dim);line-height:1.6">
-            <b>Пишите как в тетради:</b> <code>2x</code>, <code>3x^2</code>, <code>sin(x)</code>, <code>1/x</code>, <code>√x</code>, <code>ln(x)</code>.<br>
-            <b>Авто-исправление:</b> <code>3x</code>→<code>3*x</code>, <code>x2</code>→<code>x^2</code>, <code>2π</code>→<code>2*π</code>.
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ═══════ МАТРИЦЫ ═══════ -->
-  <div class="panel" data-panel="matrix">
-    <div id="matrixContent"></div>
-  </div>
-
-  <!-- ═══════ КОНВЕРТЕР ═══════ -->
-  <div class="panel" data-panel="convert">
-    <div class="conv-cats" id="convCats"></div>
-    <div class="card">
-      <div class="conv-field">
-        <span class="lbl">Из</span>
-        <div class="conv-input-row">
-          <input type="number" id="convInput" value="1" step="any">
-          <select class="conv-select" id="convFrom"></select>
-        </div>
-      </div>
-      <div class="conv-arrow">↓</div>
-      <div class="conv-field">
-        <span class="lbl">В</span>
-        <div class="conv-input-row">
-          <select class="conv-select" id="convTo" style="flex:1"></select>
-        </div>
-      </div>
-      <div class="conv-result" style="margin-top:12px;">
-        <span class="val" id="convResult">—</span>
-        <span class="unit" id="convResultUnit"></span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════ ПРОИЗВОДНЫЕ ═══════ -->
-  <div class="panel" data-panel="calc">
-    <div class="card">
-      <h3>Производная (символьно)</h3>
-      <input type="text" id="derivExpr" value="x^3 + 2*x">
-      <button class="btn" id="derivBtn" style="margin-top:8px;">d/dx</button>
-      <div class="output" id="derivOut" style="margin-top:10px;">Введите функцию и нажмите d/dx</div>
-    </div>
-    <div class="card">
-      <h3>Значение производной в точке</h3>
-      <div class="btn-row">
-        <input type="number" id="derivX" value="1" placeholder="x₀" style="flex:1">
-        <button class="btn success" id="derivEval" style="flex:2">f'(x₀)</button>
-      </div>
-      <div class="output" id="derivValOut" style="margin-top:10px;">—</div>
-    </div>
-    <div class="card">
-      <h3>Численное интегрирование</h3>
-      <div class="btn-row">
-        <input type="number" id="intA" value="0" placeholder="a" style="flex:1">
-        <input type="number" id="intB" value="1" placeholder="b" style="flex:1">
-        <button class="btn success" id="intBtn" style="flex:2">∫ f(x)dx</button>
-      </div>
-      <div class="output" id="intOut" style="margin-top:10px;">—</div>
-    </div>
-  </div>
-
-  <!-- ═══════ ЗАМЕТКИ ═══════ -->
-  <div class="panel" data-panel="notes">
-    <div class="card">
-      <h3>Черновик</h3>
-      <textarea id="notesArea" placeholder="Пишите формулы, решения, идеи... Сохраняется автоматически."></textarea>
-      <div style="font-size:11px;color:var(--text-mute);margin-top:6px;" id="notesStatus">Сохранено</div>
-    </div>
-    <div class="card">
-      <h3>Закладки</h3>
-      <div class="btn-row" style="margin-bottom:8px;">
-        <input type="text" id="bookmarkInput" placeholder="sin(x)^2 + cos(x)^2" style="flex:2">
-        <button class="btn" id="bookmarkAdd" style="flex:1">+ Добавить</button>
-      </div>
-      <div id="bookmarkList" style="display:flex;flex-direction:column;gap:5px;"></div>
-    </div>
-  </div>
-
-  <!-- ═══════ СПРАВОЧНИК ═══════ -->
-  <div class="panel" data-panel="ref">
-    <div class="card">
-      <h3>Физические константы</h3>
-      <div class="ref-grid" id="constList"></div>
-    </div>
-    <div class="card">
-      <h3>Формулы</h3>
-      <div class="ref-grid" id="formulaList"></div>
-    </div>
-  </div>
-
-  <!-- ═══════ POMODORO ═══════ -->
-  <div class="panel" data-panel="pomo">
-    <div class="card">
-      <h3>Таймер Помодоро</h3>
-      <div class="pomo-mode" id="pomoMode">Работа · 25 мин</div>
-      <div class="pomo-display" id="pomoTime">25:00</div>
-      <div class="btn-row">
-        <button class="btn success" id="pomoStart">▶ Старт</button>
-        <button class="btn ghost" id="pomoPause">⏸ Пауза</button>
-        <button class="btn danger" id="pomoReset">⟲ Сброс</button>
-      </div>
-      <div class="btn-row" style="margin-top:8px;">
-        <button class="btn ghost" id="pomoMode25">25 мин</button>
-        <button class="btn ghost" id="pomoMode5">5 мин</button>
-        <button class="btn ghost" id="pomoMode50">50 мин</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════ СТАТИСТИКА ═══════ -->
-  <div class="panel" data-panel="stats">
-    <div class="card">
-      <h3>Активность</h3>
-      <div class="stat-grid">
-        <div class="stat-item"><div class="num" id="statTotal">0</div><div class="lbl">Вычислений</div></div>
-        <div class="stat-item"><div class="num" id="statToday">0</div><div class="lbl">Сегодня</div></div>
-        <div class="stat-item"><div class="num" id="statPomos">0</div><div class="lbl">Помодоро</div></div>
-      </div>
-      <button class="btn danger" id="statReset" style="margin-top:12px;">Сбросить</button>
-    </div>
-    <div class="card">
-      <h3>Последние 7 дней</h3>
-      <div id="statChart" style="display:flex;align-items:flex-end;gap:6px;height:120px;"></div>
-    </div>
-  </div>
-
-  <!-- ═══════ НАСТРОЙКИ ═══════ -->
-  <div class="panel" data-panel="settings">
-    <div class="card">
-      <h3>Звук и вибрация</h3>
-      <div class="toggle-row">
-        <span>🔊 Звук нажатий</span>
-        <div class="switch" id="soundSwitch"></div>
-      </div>
-      <div class="toggle-row">
-        <span>📳 Вибрация</span>
-        <div class="switch on" id="vibrateSwitch"></div>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Эффекты</h3>
-      <div class="toggle-row">
-        <span>🎉 Конфетти при успехе</span>
-        <div class="switch on" id="confettiSwitch"></div>
-      </div>
-      <div class="toggle-row">
-        <span>✨ Живой фон</span>
-        <div class="switch on" id="bgSwitch"></div>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Сброс</h3>
-      <button class="btn danger" id="resetAll" style="width:100%">Сбросить всё</button>
-    </div>
+  <div class="panels-viewport" id="panelsViewport">
+    <div class="panels-track" id="panelsTrack"></div>
   </div>
 
 </div>
@@ -1178,12 +892,10 @@ function playClick() {
     const o = audioCtx.createOscillator();
     const g = audioCtx.createGain();
     o.connect(g); g.connect(audioCtx.destination);
-    o.frequency.value = 800;
-    o.type = 'sine';
+    o.frequency.value = 800; o.type = 'sine';
     g.gain.setValueAtTime(0.04, audioCtx.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
-    o.start();
-    o.stop(audioCtx.currentTime + 0.05);
+    o.start(); o.stop(audioCtx.currentTime + 0.05);
   } catch {}
 }
 function haptic(type) {
@@ -1219,44 +931,132 @@ function showToast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
 }
+function pulseOutput(el) {
+  if (!el) return;
+  el.classList.remove('update');
+  void el.offsetWidth;
+  el.classList.add('update');
+}
 
 // ═══════════════════════════════════════════════════════
 //  ТЕМА
 // ═══════════════════════════════════════════════════════
+const THEMES = ['blue','emerald','rose','amber','teal','violet','pink','custom'];
+
 function applyTheme() {
   const theme = STORE.get('theme', 'dark');
   if (theme === 'light') document.documentElement.classList.add('light');
   else document.documentElement.classList.remove('light');
+
+  // убираем все классы акцентов
+  document.documentElement.classList.remove('theme-emerald','theme-rose','theme-amber','theme-teal','theme-violet','theme-pink');
+
+  const accent = STORE.get('accent', 'blue');
+  if (accent !== 'blue' && accent !== 'custom') {
+    document.documentElement.classList.add('theme-' + accent);
+  } else if (accent === 'custom') {
+    const c1 = STORE.get('customAccent1', '#5b9dff');
+    const c2 = STORE.get('customAccent2', '#7c5cff');
+    document.documentElement.style.setProperty('--accent', c1);
+    document.documentElement.style.setProperty('--accent-2', c2);
+    document.documentElement.style.setProperty('--glow-1', hexA(c1, 0.10));
+    document.documentElement.style.setProperty('--glow-2', hexA(c2, 0.10));
+  } else {
+    document.documentElement.style.setProperty('--accent', '');
+    document.documentElement.style.setProperty('--accent-2', '');
+    document.documentElement.style.setProperty('--glow-1', '');
+    document.documentElement.style.setProperty('--glow-2', '');
+  }
+
   const btn = document.getElementById('themeBtn');
   if (btn) btn.textContent = theme === 'light' ? '☀️' : '🌙';
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', theme === 'light' ? '#eef1f7' : '#0e1116');
-  if (document.querySelector('.panel.active')?.dataset.panel === 'graph') {
-    setTimeout(drawGraph, 60);
-  }
+  if (currentTab === 'graph') setTimeout(drawGraph, 60);
 }
-document.getElementById('themeBtn').addEventListener('click', (e) => {
-  const cur = STORE.get('theme', 'dark');
-  STORE.set('theme', cur === 'light' ? 'dark' : 'light');
-  const btn = e.currentTarget;
-  btn.classList.add('spin');
-  setTimeout(() => btn.classList.remove('spin'), 400);
-  applyTheme();
-});
-applyTheme();
-
+function hexA(hex, a) {
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+  const r = parseInt(hex.slice(0,2),16);
+  const g = parseInt(hex.slice(2,4),16);
+  const b = parseInt(hex.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
 function applyBg() {
   const on = STORE.get('bg', true);
   document.body.classList.toggle('no-bg', !on);
 }
-applyBg();
 
 // ═══════════════════════════════════════════════════════
-//  ВКЛАДКИ
+//  ОПРЕДЕЛЕНИЕ ВКЛАДОК
 // ═══════════════════════════════════════════════════════
+const TABS = [
+  { id:'basic',   icon:'🔢', label:'Калькулятор' },
+  { id:'eq',      icon:'🧩', label:'Уравнения' },
+  { id:'graph',   icon:'📈', label:'Графики' },
+  { id:'school',  icon:'🎓', label:'Школьнику' },
+  { id:'trig',    icon:'📐', label:'Тригонометрия' },
+  { id:'prob',    icon:'🎲', label:'Вероятность' },
+  { id:'dev',     icon:'💻', label:'Программисту' },
+  { id:'matrix',  icon:'▦', label:'Матрицы' },
+  { id:'convert', icon:'↔', label:'Конвертер' },
+  { id:'calc',    icon:'🧪', label:'Производные' },
+  { id:'notes',   icon:'📝', label:'Заметки' },
+  { id:'ref',     icon:'📚', label:'Справочник' },
+  { id:'pomo',    icon:'⏱', label:'Pomodoro' },
+  { id:'stats',   icon:'📊', label:'Статистика' },
+  { id:'settings',icon:'⚙️', label:'Настройки' },
+];
+
+let currentTab = 'basic';
+let currentTabIndex = 0;
+
 const tabsScroll = document.getElementById('tabsScroll');
+const panelsTrack = document.getElementById('panelsTrack');
+const panelsViewport = document.getElementById('panelsViewport');
 const tabsLeft = document.getElementById('tabsLeft');
 const tabsRight = document.getElementById('tabsRight');
+
+// ─── Построение вкладок и панелей ───
+TABS.forEach((tab, i) => {
+  const b = document.createElement('button');
+  b.dataset.tab = tab.id;
+  b.innerHTML = `${tab.icon} ${tab.label}`;
+  if (i === 0) b.classList.add('active');
+  b.addEventListener('click', () => switchTab(tab.id));
+  tabsScroll.appendChild(b);
+
+  const panel = document.createElement('div');
+  panel.className = 'panel';
+  panel.dataset.panel = tab.id;
+  panelsTrack.appendChild(panel);
+});
+
+// ─── Панели рендерим позже ───
+function getPanel(id) { return document.querySelector(`.panel[data-panel="${id}"]`); }
+
+// ─── Переключение вкладок ───
+function switchTab(name, scrollOnly) {
+  const idx = TABS.findIndex(t => t.id === name);
+  if (idx < 0) return;
+  currentTab = name;
+  currentTabIndex = idx;
+
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  const activeBtn = document.querySelector(`.tabs button[data-tab="${name}"]`);
+  if (activeBtn) activeBtn.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
+
+  panelsTrack.style.transform = `translateX(${-idx * 100}%)`;
+
+  if (!scrollOnly) {
+    if (name === 'stats') renderStats();
+    if (name === 'graph') setTimeout(drawGraph, 60);
+    if (name === 'settings') renderThemePicker();
+  }
+  updateTabsArrows();
+}
+
+// ─── Стрелки вкладок ───
 function updateTabsArrows() {
   const sl = tabsScroll.scrollLeft;
   const maxScroll = tabsScroll.scrollWidth - tabsScroll.clientWidth;
@@ -1265,20 +1065,573 @@ function updateTabsArrows() {
 }
 tabsScroll.addEventListener('scroll', updateTabsArrows, { passive: true });
 window.addEventListener('resize', updateTabsArrows);
-setTimeout(updateTabsArrows, 100);
 tabsLeft.addEventListener('click', () => tabsScroll.scrollBy({ left: -150, behavior: 'smooth' }));
 tabsRight.addEventListener('click', () => tabsScroll.scrollBy({ left: 150, behavior: 'smooth' }));
 
-function switchTab(name) {
-  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
-  const btn = document.querySelector(`.tabs button[data-tab="${name}"]`);
-  if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  if (name === 'stats') renderStats();
-  if (name === 'graph') setTimeout(drawGraph, 30);
+// ─── Свайп ленты вкладок (горизонтальный) ───
+let tabDragStart = null, tabDragScroll = 0, tabDragMoved = false;
+tabsScroll.addEventListener('pointerdown', (e) => {
+  if (e.pointerType === 'touch') return;
+  tabDragStart = e.clientX;
+  tabDragScroll = tabsScroll.scrollLeft;
+  tabDragMoved = false;
+  tabsScroll.classList.add('dragging');
+});
+tabsScroll.addEventListener('pointermove', (e) => {
+  if (tabDragStart === null) return;
+  const dx = e.clientX - tabDragStart;
+  if (Math.abs(dx) > 4) tabDragMoved = true;
+  tabsScroll.scrollLeft = tabDragScroll - dx;
+});
+tabsScroll.addEventListener('pointerup', () => {
+  tabDragStart = null;
+  tabsScroll.classList.remove('dragging');
+});
+tabsScroll.addEventListener('pointercancel', () => {
+  tabDragStart = null;
+  tabsScroll.classList.remove('dragging');
+});
+// touch — нативный overflow scroll уже работает
+
+// ─── Свайп между панелями ───
+let panelTouchStart = null;
+let panelTouchStartY = null;
+let panelDragLocked = false;
+
+panelsViewport.addEventListener('touchstart', (e) => {
+  if (e.touches.length !== 1) return;
+  panelTouchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() };
+  panelTouchStartY = e.touches[0].clientY;
+  panelDragLocked = false;
+  panelsTrack.classList.add('no-transition');
+}, { passive: true });
+
+panelsViewport.addEventListener('touchmove', (e) => {
+  if (!panelTouchStart) return;
+  const dx = e.touches[0].clientX - panelTouchStart.x;
+  const dy = e.touches[0].clientY - panelTouchStart.y;
+  // если начали вертикально — не мешаем скроллу
+  if (!panelDragLocked) {
+    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) {
+      panelTouchStart = null;
+      panelsTrack.classList.remove('no-transition');
+      return;
+    }
+    if (Math.abs(dx) > 10) panelDragLocked = true;
+  }
+  if (panelDragLocked) {
+    const shift = -currentTabIndex * panelsViewport.clientWidth + dx * 0.5;
+    panelsTrack.style.transform = `translateX(${shift}px)`;
+  }
+}, { passive: true });
+
+panelsViewport.addEventListener('touchend', (e) => {
+  if (!panelTouchStart) return;
+  const dx = e.changedTouches[0].clientX - panelTouchStart.x;
+  const dt = Date.now() - panelTouchStart.time;
+  panelsTrack.classList.remove('no-transition');
+  if (panelDragLocked && (Math.abs(dx) > 60 || (Math.abs(dx) > 25 && dt < 250))) {
+    if (dx < 0 && currentTabIndex < TABS.length - 1) switchTab(TABS[currentTabIndex + 1].id);
+    else if (dx > 0 && currentTabIndex > 0) switchTab(TABS[currentTabIndex - 1].id);
+    else switchTab(TABS[currentTabIndex].id);
+  } else {
+    switchTab(TABS[currentTabIndex].id);
+  }
+  panelTouchStart = null;
+  panelDragLocked = false;
+});
+
+// desktop: drag мышью по панели
+let panelMouseStart = null;
+panelsViewport.addEventListener('mousedown', (e) => {
+  if (e.target.closest('input, textarea, select, button')) return;
+  panelMouseStart = { x: e.clientX, index: currentTabIndex };
+  panelsTrack.classList.add('no-transition');
+});
+window.addEventListener('mousemove', (e) => {
+  if (!panelMouseStart) return;
+  const dx = e.clientX - panelMouseStart.x;
+  if (Math.abs(dx) > 5) {
+    const shift = -panelMouseStart.index * panelsViewport.clientWidth + dx * 0.5;
+    panelsTrack.style.transform = `translateX(${shift}px)`;
+  }
+});
+window.addEventListener('mouseup', (e) => {
+  if (!panelMouseStart) return;
+  const dx = e.clientX - panelMouseStart.x;
+  panelsTrack.classList.remove('no-transition');
+  if (dx < -80 && currentTabIndex < TABS.length - 1) switchTab(TABS[currentTabIndex + 1].id);
+  else if (dx > 80 && currentTabIndex > 0) switchTab(TABS[currentTabIndex - 1].id);
+  else switchTab(TABS[currentTabIndex].id);
+  panelMouseStart = null;
+});
+
+// ─── Кнопки не должны мешать свайпу ───
+panelsViewport.addEventListener('touchstart', (e) => {
+  if (e.target.closest('button, input, textarea, select, canvas, a')) {
+    panelTouchStart = null;
+  }
+}, { passive: true, capture: true });
+panelsViewport.addEventListener('mousedown', (e) => {
+  if (e.target.closest('button, input, textarea, select, canvas, a')) {
+    panelMouseStart = null;
+  }
+}, { capture: true });
+
+// ═══════════════════════════════════════════════════════
+//  ПАНЕЛИ — HTML
+// ═══════════════════════════════════════════════════════
+
+// ── Калькулятор ──
+getPanel('basic').innerHTML = `
+  <div class="topbar">
+    <span id="memLabel"></span>
+    <div class="topbar-right">
+      <span class="pill" id="undoBtn">↶</span>
+      <span class="pill" id="redoBtn">↷</span>
+      <span class="pill theme" id="themeBtn">🌙</span>
+      <span class="pill" id="modeBtn">DEG</span>
+    </div>
+  </div>
+  <div class="display" id="display">
+    <div id="screen">0</div>
+    <div id="hint"></div>
+  </div>
+  <div class="grid" id="grid"></div>
+`;
+
+// ── Уравнения ──
+getPanel('eq').innerHTML = `
+  <div class="card">
+    <h3>Линейное: ax + b = 0</h3>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="linA" value="2" placeholder="a" style="flex:1">
+      <span style="align-self:center;color:var(--text-dim)">x +</span>
+      <input type="number" id="linB" value="-8" placeholder="b" style="flex:1">
+      <span style="align-self:center;color:var(--text-dim)">= 0</span>
+    </div>
+    <button class="btn" id="solveLin">Решить</button>
+    <div class="output" id="linOut" style="margin-top:10px;">Ответ появится здесь</div>
+  </div>
+  <div class="card">
+    <h3>Квадратное: ax² + bx + c = 0</h3>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="sqA" value="1" placeholder="a" style="flex:1">
+      <input type="number" id="sqB" value="-3" placeholder="b" style="flex:1">
+      <input type="number" id="sqC" value="2" placeholder="c" style="flex:1">
+    </div>
+    <button class="btn" id="solveSq">Решить</button>
+    <div class="output" id="sqOut" style="margin-top:10px;">Ответ появится здесь</div>
+  </div>
+  <div class="card">
+    <h3>Система 2×2</h3>
+    <div class="btn-row" style="margin-bottom:6px;">
+      <input type="number" id="sysA1" value="2" placeholder="a₁" style="flex:1">
+      <input type="number" id="sysB1" value="3" placeholder="b₁" style="flex:1">
+      <input type="number" id="sysC1" value="8" placeholder="c₁" style="flex:1">
+    </div>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="sysA2" value="1" placeholder="a₂" style="flex:1">
+      <input type="number" id="sysB2" value="-1" placeholder="b₂" style="flex:1">
+      <input type="number" id="sysC2" value="-1" placeholder="c₂" style="flex:1">
+    </div>
+    <button class="btn" id="solveSys">Решить</button>
+    <div class="output" id="sysOut" style="margin-top:10px;">Ответ появится здесь</div>
+  </div>
+`;
+
+// ── Графики ──
+getPanel('graph').innerHTML = `
+  <div class="graph-wrap">
+    <canvas id="graphCanvas"></canvas>
+    <div class="graph-info">
+      <span id="graphRangeX">x ∈ [−10, 10]</span>
+      <span id="graphRangeY">y ∈ [−10, 10]</span>
+    </div>
+  </div>
+  <div class="card" style="padding:10px;">
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button class="btn success" id="graphDraw" style="flex:1;">Построить</button>
+      <button class="btn ghost" id="graphAuto" title="Авто" style="flex:0 0 44px;">⛶</button>
+      <button class="btn ghost" id="graphZoomIn" style="flex:0 0 44px;">+</button>
+      <button class="btn ghost" id="graphZoomOut" style="flex:0 0 44px;">−</button>
+      <button class="btn ghost" id="graphReset" style="flex:0 0 44px;">⟲</button>
+      <button class="btn ghost" id="graphShare" style="flex:0 0 44px;">⬇</button>
+    </div>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <button id="graphPanelToggle" style="width:100%;background:transparent;border:none;color:var(--text);padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;justify-content:space-between;align-items:center;">
+      <span>⚙️ Настройка функций и ввод</span>
+      <span id="graphPanelArrow" style="transition:transform 0.25s;display:inline-block;">▾</span>
+    </button>
+    <div id="graphPanelBody" style="padding:0 14px 14px;display:none;">
+      <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;font-weight:700;margin:8px 0 6px;">Функции</div>
+      <div id="graphFns"></div>
+      <button class="btn ghost" id="graphAddFn" style="width:100%;margin-top:6px;">+ Добавить функцию</button>
+      <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;font-weight:700;margin:12px 0 6px;">Пресеты</div>
+      <div class="graph-presets" id="graphPresets"></div>
+      <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;font-weight:700;margin:12px 0 6px;">Ввод</div>
+      <div class="graph-keys" id="graphKeys"></div>
+    </div>
+  </div>
+`;
+
+// ── Школьнику ──
+getPanel('school').innerHTML = `
+  <div class="card">
+    <h3>Квадратное неравенство ax² + bx + c &gt; 0</h3>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="ineqA" value="1" placeholder="a" style="flex:1">
+      <input type="number" id="ineqB" value="-3" placeholder="b" style="flex:1">
+      <input type="number" id="ineqC" value="2" placeholder="c" style="flex:1">
+    </div>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <select id="ineqSign" style="flex:1">
+        <option value="gt">&gt; 0</option>
+        <option value="ge">≥ 0</option>
+        <option value="lt">&lt; 0</option>
+        <option value="le">≤ 0</option>
+      </select>
+    </div>
+    <button class="btn" id="solveIneq">Решить</button>
+    <div class="output" id="ineqOut" style="margin-top:10px;">Ответ появится здесь</div>
+  </div>
+  <div class="card">
+    <h3>Арифметическая прогрессия</h3>
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">aₙ = a₁ + (n−1)·d</div>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="apA1" value="1" placeholder="a₁" style="flex:1">
+      <input type="number" id="apD" value="3" placeholder="d" style="flex:1">
+      <input type="number" id="apN" value="10" placeholder="n" style="flex:1">
+    </div>
+    <button class="btn" id="solveAp">Найти aₙ и Sₙ</button>
+    <div class="output" id="apOut" style="margin-top:10px;">—</div>
+  </div>
+  <div class="card">
+    <h3>Геометрическая прогрессия</h3>
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">bₙ = b₁ · qⁿ⁻¹</div>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="gpB1" value="2" placeholder="b₁" style="flex:1">
+      <input type="number" id="gpQ" value="2" placeholder="q" style="flex:1">
+      <input type="number" id="gpN" value="10" placeholder="n" style="flex:1">
+    </div>
+    <button class="btn" id="solveGp">Найти bₙ и Sₙ</button>
+    <div class="output" id="gpOut" style="margin-top:10px;">—</div>
+  </div>
+  <div class="card">
+    <h3>Вектор: |a| = √(x² + y² + z²)</h3>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="vecX" value="3" placeholder="x" style="flex:1">
+      <input type="number" id="vecY" value="4" placeholder="y" style="flex:1">
+      <input type="number" id="vecZ" value="0" placeholder="z" style="flex:1">
+    </div>
+    <button class="btn" id="solveVec">Найти длину</button>
+    <div class="output" id="vecOut" style="margin-top:10px;">—</div>
+  </div>
+`;
+
+// ── Тригонометрия ──
+getPanel('trig').innerHTML = `
+  <div class="card">
+    <h3>Таблица значений</h3>
+    <table class="value-table" id="trigTable">
+      <thead><tr><th>Угол</th><th>sin</th><th>cos</th><th>tan</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>Угол → значение</h3>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="trigDeg" value="30" placeholder="градусы" style="flex:1">
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="trigSin">sin</button>
+      <button class="btn" id="trigCos">cos</button>
+      <button class="btn" id="trigTan">tan</button>
+    </div>
+    <div class="output" id="trigOut" style="margin-top:10px;">—</div>
+  </div>
+  <div class="card">
+    <h3>Обратные функции</h3>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="trigVal" value="0.5" step="0.1" placeholder="значение" style="flex:1">
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="trigAsin">asin</button>
+      <button class="btn" id="trigAcos">acos</button>
+      <button class="btn" id="trigAtan">atan</button>
+    </div>
+    <div class="output" id="trigInvOut" style="margin-top:10px;">—</div>
+  </div>
+`;
+
+// ── Вероятность ──
+getPanel('prob').innerHTML = `
+  <div class="card">
+    <h3>Комбинаторика</h3>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="cn" value="5" placeholder="n" style="flex:1">
+      <input type="number" id="ck" value="3" placeholder="k" style="flex:1">
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="combC">C(n,k)</button>
+      <button class="btn" id="combA">A(n,k)</button>
+      <button class="btn" id="combP">n!</button>
+    </div>
+    <div class="output" id="combOut" style="margin-top:10px;">—</div>
+  </div>
+  <div class="card">
+    <h3>Бином Ньютона</h3>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="binomA" value="1" placeholder="a" style="flex:1">
+      <input type="number" id="binomB" value="1" placeholder="b" style="flex:1">
+      <input type="number" id="binomN" value="3" placeholder="n" style="flex:1">
+    </div>
+    <button class="btn" id="binomBtn">Раскрыть (a+b)ⁿ</button>
+    <div class="output" id="binomOut" style="margin-top:10px;">—</div>
+  </div>
+  <div class="card">
+    <h3>Статистика</h3>
+    <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px;">Числа через запятую:</div>
+    <input type="text" id="statData" value="2, 4, 4, 4, 5, 5, 7, 9" style="margin-bottom:8px;">
+    <button class="btn" id="statBtn">Посчитать</button>
+    <div class="output" id="statOut" style="margin-top:10px;">—</div>
+  </div>
+`;
+
+// ── Программисту ──
+getPanel('dev').innerHTML = `
+  <div class="card">
+    <h3>Системы счисления</h3>
+    <input type="text" id="devNum" value="255" placeholder="число">
+    <div class="btn-row" style="margin-top:8px;">
+      <button class="btn" id="devBin">в 2</button>
+      <button class="btn" id="devOct">в 8</button>
+      <button class="btn" id="devDec">в 10</button>
+      <button class="btn" id="devHex">в 16</button>
+    </div>
+    <div class="output" id="devOut" style="margin-top:10px;">—</div>
+  </div>
+  <div class="card">
+    <h3>Битовые операции</h3>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="number" id="bitA" value="12" placeholder="a" style="flex:1">
+      <input type="number" id="bitB" value="10" placeholder="b" style="flex:1">
+    </div>
+    <div class="bit-grid">
+      <button data-op="and">AND &</button>
+      <button data-op="or">OR |</button>
+      <button data-op="xor">XOR ^</button>
+      <button data-op="not">NOT ~</button>
+      <button data-op="lshift">a &lt;&lt; b</button>
+      <button data-op="rshift">a &gt;&gt; b</button>
+      <button data-op="ushr">a &gt;&gt;&gt; b</button>
+      <button data-op="popcnt">popcount</button>
+    </div>
+    <div class="output" id="bitOut" style="margin-top:10px;">—</div>
+  </div>
+  <div class="card">
+    <h3>Кодировки / хэши</h3>
+    <input type="text" id="encText" value="Hello" placeholder="текст">
+    <div class="btn-row" style="margin-top:8px;">
+      <button class="btn" id="encB64">Base64</button>
+      <button class="btn" id="encHex">Hex</button>
+      <button class="btn" id="encAscii">ASCII</button>
+      <button class="btn" id="encCrc">CRC32</button>
+    </div>
+    <div class="output" id="encOut" style="margin-top:10px;">—</div>
+  </div>
+  <div class="card">
+    <h3>Логика / логические операции</h3>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="text" id="logExpr" value="A && B || !C" placeholder="A && B || !C">
+    </div>
+    <button class="btn" id="logBtn">Таблица истинности</button>
+    <div class="output" id="logOut" style="margin-top:10px;">—</div>
+  </div>
+`;
+
+// ── Матрицы ──
+getPanel('matrix').innerHTML = `<div id="matrixContent"></div>`;
+
+// ── Конвертер ──
+getPanel('convert').innerHTML = `
+  <div class="conv-cats" id="convCats"></div>
+  <div class="card">
+    <div class="conv-field">
+      <span class="lbl">Из</span>
+      <div class="conv-input-row">
+        <input type="number" id="convInput" value="1" step="any">
+        <select class="conv-select" id="convFrom"></select>
+      </div>
+    </div>
+    <div class="conv-arrow">↓</div>
+    <div class="conv-field">
+      <span class="lbl">В</span>
+      <div class="conv-input-row">
+        <select class="conv-select" id="convTo" style="flex:1"></select>
+      </div>
+    </div>
+    <div class="conv-result" style="margin-top:12px;">
+      <span class="val" id="convResult">—</span>
+      <span class="unit" id="convResultUnit"></span>
+    </div>
+  </div>
+`;
+
+// ── Производные ──
+getPanel('calc').innerHTML = `
+  <div class="card">
+    <h3>Производная (символьно)</h3>
+    <input type="text" id="derivExpr" value="x^3 + 2*x">
+    <button class="btn" id="derivBtn" style="margin-top:8px;">d/dx</button>
+    <div class="output" id="derivOut" style="margin-top:10px;">Введите функцию и нажмите d/dx</div>
+  </div>
+  <div class="card">
+    <h3>Значение производной в точке</h3>
+    <div class="btn-row">
+      <input type="number" id="derivX" value="1" placeholder="x₀" style="flex:1">
+      <button class="btn success" id="derivEval" style="flex:2">f'(x₀)</button>
+    </div>
+    <div class="output" id="derivValOut" style="margin-top:10px;">—</div>
+  </div>
+  <div class="card">
+    <h3>Численное интегрирование</h3>
+    <div class="btn-row">
+      <input type="number" id="intA" value="0" placeholder="a" style="flex:1">
+      <input type="number" id="intB" value="1" placeholder="b" style="flex:1">
+      <button class="btn success" id="intBtn" style="flex:2">∫ f(x)dx</button>
+    </div>
+    <div class="output" id="intOut" style="margin-top:10px;">—</div>
+  </div>
+`;
+
+// ── Заметки ──
+getPanel('notes').innerHTML = `
+  <div class="card">
+    <h3>Черновик</h3>
+    <textarea id="notesArea" placeholder="Пишите формулы, решения, идеи... Сохраняется автоматически."></textarea>
+    <div style="font-size:11px;color:var(--text-mute);margin-top:6px;" id="notesStatus">Сохранено</div>
+  </div>
+  <div class="card">
+    <h3>Закладки</h3>
+    <div class="btn-row" style="margin-bottom:8px;">
+      <input type="text" id="bookmarkInput" placeholder="sin(x)^2 + cos(x)^2" style="flex:2">
+      <button class="btn" id="bookmarkAdd" style="flex:1">+ Добавить</button>
+    </div>
+    <div id="bookmarkList" style="display:flex;flex-direction:column;gap:5px;"></div>
+  </div>
+`;
+
+// ── Справочник ──
+getPanel('ref').innerHTML = `
+  <div class="card">
+    <h3>Физические константы</h3>
+    <div class="ref-grid" id="constList"></div>
+  </div>
+  <div class="card">
+    <h3>Формулы</h3>
+    <div class="ref-grid" id="formulaList"></div>
+  </div>
+`;
+
+// ── Pomodoro ──
+getPanel('pomo').innerHTML = `
+  <div class="card">
+    <h3>Таймер Помодоро</h3>
+    <div class="pomo-mode" id="pomoMode">Работа · 25 мин</div>
+    <div class="pomo-display" id="pomoTime">25:00</div>
+    <div class="btn-row">
+      <button class="btn success" id="pomoStart">▶ Старт</button>
+      <button class="btn ghost" id="pomoPause">⏸ Пауза</button>
+      <button class="btn danger" id="pomoReset">⟲ Сброс</button>
+    </div>
+    <div class="btn-row" style="margin-top:8px;">
+      <button class="btn ghost" id="pomoMode25">25 мин</button>
+      <button class="btn ghost" id="pomoMode5">5 мин</button>
+      <button class="btn ghost" id="pomoMode50">50 мин</button>
+    </div>
+  </div>
+`;
+
+// ── Статистика ──
+getPanel('stats').innerHTML = `
+  <div class="card">
+    <h3>Активность</h3>
+    <div class="stat-grid">
+      <div class="stat-item"><div class="num" id="statTotal">0</div><div class="lbl">Вычислений</div></div>
+      <div class="stat-item"><div class="num" id="statToday">0</div><div class="lbl">Сегодня</div></div>
+      <div class="stat-item"><div class="num" id="statPomos">0</div><div class="lbl">Помодоро</div></div>
+    </div>
+    <button class="btn danger" id="statReset" style="margin-top:12px;">Сбросить</button>
+  </div>
+  <div class="card">
+    <h3>Последние 7 дней</h3>
+    <div id="statChart" style="display:flex;align-items:flex-end;gap:6px;height:120px;"></div>
+  </div>
+`;
+
+// ── Настройки ──
+getPanel('settings').innerHTML = `
+  <div class="card">
+    <h3>Тема</h3>
+    <div class="theme-grid" id="themeGrid"></div>
+    <div class="custom-color-row">
+      <input type="color" id="customAccent1" value="#5b9dff">
+      <input type="color" id="customAccent2" value="#7c5cff">
+      <button class="btn" id="applyCustom" style="flex:1">Применить свой</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Режим</h3>
+    <div class="toggle-row"><span>🌙 Тёмная тема</span><div class="switch on" id="darkSwitch"></div></div>
+    <div class="toggle-row"><span>🔊 Звук нажатий</span><div class="switch" id="soundSwitch"></div></div>
+    <div class="toggle-row"><span>📳 Вибрация</span><div class="switch on" id="vibrateSwitch"></div></div>
+    <div class="toggle-row"><span>🎉 Конфетти</span><div class="switch on" id="confettiSwitch"></div></div>
+    <div class="toggle-row"><span>✨ Живой фон</span><div class="switch on" id="bgSwitch"></div></div>
+  </div>
+  <div class="card">
+    <h3>Приложение</h3>
+    <button class="btn" id="installBtn" style="width:100%">📥 Установить приложение</button>
+    <div style="font-size:12px;color:var(--text-mute);margin-top:8px;" id="installHint">Работает офлайн после установки. Иконка появится на главном экране.</div>
+  </div>
+  <div class="card">
+    <h3>Данные</h3>
+    <button class="btn danger" id="resetAll" style="width:100%">Сбросить всё</button>
+  </div>
+`;
+
+// ═══════════════════════════════════════════════════════
+//  ИНИЦИАЛИЗАЦИЯ
+// ═══════════════════════════════════════════════════════
+applyTheme();
+applyBg();
+switchTab('basic');
+
+// ═══════════════════════════════════════════════════════
+//  РЕГИСТРАЦИЯ SERVICE WORKER
+// ═══════════════════════════════════════════════════════
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
 }
-document.querySelectorAll('.tabs button').forEach(btn => {
-  btn.addEventListener('click', () => { haptic(); playClick(); switchTab(btn.dataset.tab); });
+
+// Install prompt (PWA)
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+});
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const r = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    showToast(r.outcome === 'accepted' ? '✓ Устанавливается' : 'Отменено');
+  } else {
+    showToast('Откройте в браузере → Добавить на главный экран');
+  }
 });
 
 // ═══════════════════════════════════════════════════════
@@ -1291,11 +1644,20 @@ let history = STORE.get('history', []);
 let undoStack = [], redoStack = [];
 
 const screenEl = document.getElementById('screen');
-const hintEl   = document.getElementById('hint');
-const memEl    = document.getElementById('memLabel');
-const modeEl   = document.getElementById('modeBtn');
-const gridEl   = document.getElementById('grid');
+const hintEl = document.getElementById('hint');
+const memEl = document.getElementById('memLabel');
+const modeEl = document.getElementById('modeBtn');
+const gridEl = document.getElementById('grid');
 const displayEl = document.getElementById('display');
+
+document.getElementById('themeBtn').addEventListener('click', (e) => {
+  const cur = STORE.get('theme', 'dark');
+  STORE.set('theme', cur === 'light' ? 'dark' : 'light');
+  const btn = e.currentTarget;
+  btn.classList.add('spin');
+  setTimeout(() => btn.classList.remove('spin'), 400);
+  applyTheme();
+});
 
 function pushUndo() { undoStack.push(expression); if (undoStack.length > 100) undoStack.shift(); redoStack = []; }
 function undo() { if (!undoStack.length) return; redoStack.push(expression); expression = undoStack.pop(); resultShown = false; updateScreen(); }
@@ -1326,19 +1688,8 @@ function onNegate() {
   else expression = '-' + expression;
   updateScreen();
 }
-function onFactorial() {
-  pushUndo();
-  if (resultShown) resultShown = false;
-  expression = expression ? `factorial(${expression})` : 'factorial(';
-  updateScreen();
-}
-function onInverse() {
-  if (!expression) return;
-  pushUndo();
-  resultShown = false;
-  expression = `1/(${expression})`;
-  updateScreen();
-}
+function onFactorial() { pushUndo(); if (resultShown) resultShown = false; expression = expression ? `factorial(${expression})` : 'factorial('; updateScreen(); }
+function onInverse() { if (!expression) return; pushUndo(); resultShown = false; expression = `1/(${expression})`; updateScreen(); }
 function onEquals() {
   if (!expression) return;
   try {
@@ -1346,38 +1697,25 @@ function onEquals() {
     const open = (expr.match(/\(/g)||[]).length;
     const close = (expr.match(/\)/g)||[]).length;
     expr = expr + ')'.repeat(Math.max(0, open-close));
-
     const result = safeEval(expr);
-    if (typeof result !== 'number' || Number.isNaN(result) || !Number.isFinite(result)) {
-      throw new Error('Результат не определён');
-    }
+    if (typeof result !== 'number' || Number.isNaN(result) || !Number.isFinite(result)) throw new Error('Результат не определён');
     displayEl.classList.add('flash');
     setTimeout(() => displayEl.classList.remove('flash'), 500);
-
     hintEl.textContent = expression + ' =';
     history.push([expression, fmt(result)]);
     if (history.length > 500) history = history.slice(-500);
     STORE.set('history', history);
     incrementStat('calc');
-
     const nice = Number.isInteger(result) || Math.abs(result - Math.PI) < 1e-9 || Math.abs(result - Math.E) < 1e-9;
-    if (nice) {
-      screenEl.classList.add('success');
-      fireConfetti();
-      haptic('success');
-    } else {
-      haptic('tap');
-    }
+    if (nice) { screenEl.classList.add('success'); fireConfetti(); haptic('success'); } else haptic('tap');
     screenEl.classList.add('bump');
     setTimeout(() => screenEl.classList.remove('bump'), 300);
-
     expression = engineering(result);
     resultShown = true;
     updateScreen();
   } catch (e) {
     hintEl.textContent = '⚠ ' + e.message;
-    expression = '';
-    resultShown = false;
+    expression = ''; resultShown = false;
     screenEl.classList.add('error');
     haptic('error');
     setTimeout(() => screenEl.classList.remove('error'), 500);
@@ -1393,20 +1731,17 @@ function memSub()    { try { const v = expression ? safeEval(preprocess(expressi
 
 function showHistory() {
   const hl = document.getElementById('historyList');
-  if (!history.length) { hl.innerHTML = '<div class="empty">История пуста</div>'; }
-  else {
-    hl.innerHTML = history.slice().reverse().map(([e, r], i) => {
-      const idx = history.length - 1 - i;
-      return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-family:'SF Mono',Consolas,monospace;font-size:13px">
-        <span>${e} <span style="color:var(--success)">= ${r}</span></span>
-        <button onclick="copyHist(${idx})" style="background:var(--bg-elev-2);color:var(--accent);border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">📋</button>
-      </div>`;
-    }).join('') +
-    `<div style="margin-top:12px;display:flex;gap:6px">
-      <button onclick="clearHistory()" style="flex:1;background:linear-gradient(135deg,#ff5b6e,#d63a4d);color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer">Очистить</button>
-      <button onclick="exportHistory()" style="flex:1;background:linear-gradient(135deg,var(--success),#22a06b);color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer">.csv</button>
+  if (!history.length) hl.innerHTML = '<div class="empty">История пуста</div>';
+  else hl.innerHTML = history.slice().reverse().map(([e, r], i) => {
+    const idx = history.length - 1 - i;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-family:'SF Mono',Consolas,monospace;font-size:13px">
+      <span>${e} <span style="color:var(--success)">= ${r}</span></span>
+      <button onclick="copyHist(${idx})" style="background:var(--bg-elev-2);color:var(--accent);border:none;border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer">📋</button>
     </div>`;
-  }
+  }).join('') + `<div style="margin-top:12px;display:flex;gap:6px">
+    <button onclick="clearHistory()" style="flex:1;background:linear-gradient(135deg,#ff5b6e,#d63a4d);color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer">Очистить</button>
+    <button onclick="exportHistory()" style="flex:1;background:linear-gradient(135deg,var(--success),#22a06b);color:#fff;border:none;border-radius:8px;padding:10px;font-weight:700;cursor:pointer">.csv</button>
+  </div>`;
   document.getElementById('historyModal').classList.add('open');
 }
 window.copyHist = function(i) { navigator.clipboard.writeText(`${history[i][0]} = ${history[i][1]}`); showToast('✓ Скопировано'); };
@@ -1415,8 +1750,7 @@ window.exportHistory = function() {
   const csv = 'expr,result\n' + history.map(([e,r]) => `"${e.replace(/"/g,'""')}","${r}"`).join('\n');
   const blob = new Blob([csv], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'history.csv'; a.click();
+  const a = document.createElement('a'); a.href = url; a.download = 'history.csv'; a.click();
   URL.revokeObjectURL(url);
 };
 
@@ -1440,10 +1774,8 @@ function addRipple(btn, event) {
   const r = Math.max(rect.width, rect.height);
   const ripple = document.createElement('span');
   ripple.className = 'ripple';
-  ripple.style.left = (x - r/2) + 'px';
-  ripple.style.top = (y - r/2) + 'px';
-  ripple.style.width = r + 'px';
-  ripple.style.height = r + 'px';
+  ripple.style.left = (x - r/2) + 'px'; ripple.style.top = (y - r/2) + 'px';
+  ripple.style.width = r + 'px'; ripple.style.height = r + 'px';
   btn.appendChild(ripple);
   setTimeout(() => ripple.remove(), 600);
 }
@@ -1456,15 +1788,11 @@ ALL_BUTTONS.forEach(([label, cls, fn]) => {
   gridEl.appendChild(b);
 });
 modeEl.addEventListener('click', toggleDegrees);
-document.getElementById('closeHist').addEventListener('click', () =>
-  document.getElementById('historyModal').classList.remove('open'));
+document.getElementById('closeHist').addEventListener('click', () => document.getElementById('historyModal').classList.remove('open'));
 
 let touchTimer = null;
 screenEl.addEventListener('touchstart', () => {
-  touchTimer = setTimeout(() => {
-    navigator.clipboard.writeText(screenEl.textContent);
-    showToast('✓ Скопировано');
-  }, 600);
+  touchTimer = setTimeout(() => { navigator.clipboard.writeText(screenEl.textContent); showToast('✓ Скопировано'); }, 600);
 });
 screenEl.addEventListener('touchend', () => clearTimeout(touchTimer));
 screenEl.addEventListener('contextmenu', e => {
@@ -1474,7 +1802,7 @@ screenEl.addEventListener('contextmenu', e => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (document.querySelector('.panel.active')?.dataset.panel !== 'basic') return;
+  if (currentTab !== 'basic') return;
   if (e.ctrlKey && e.key === 'z') { undo(); e.preventDefault(); return; }
   if (e.ctrlKey && e.key === 'y') { redo(); e.preventDefault(); return; }
   if (e.key === 'Enter') { onEquals(); e.preventDefault(); }
@@ -1488,41 +1816,378 @@ document.addEventListener('keydown', (e) => {
 // ═══════════════════════════════════════════════════════
 //  УРАВНЕНИЯ
 // ═══════════════════════════════════════════════════════
-document.getElementById('solveLin').addEventListener('click', () => {
-  const a = parseFloat(document.getElementById('linA').value) || 0;
-  const b = parseFloat(document.getElementById('linB').value) || 0;
-  const out = document.getElementById('linOut');
-  if (a === 0) { out.className = 'output err'; out.textContent = b === 0 ? '∞ решений' : 'Нет решений'; return; }
-  out.className = 'output ok';
-  out.textContent = `x = ${fmt(-b/a)}`;
-  incrementStat('calc');
-});
-document.getElementById('solveSq').addEventListener('click', () => {
-  const a = parseFloat(document.getElementById('sqA').value) || 0;
-  const b = parseFloat(document.getElementById('sqB').value) || 0;
-  const c = parseFloat(document.getElementById('sqC').value) || 0;
-  const out = document.getElementById('sqOut');
-  if (a === 0) { out.className = 'output err'; out.textContent = 'a ≠ 0 обязательно'; return; }
+function bindEqSolve() {
+  document.getElementById('solveLin').addEventListener('click', () => {
+    const a = parseFloat(document.getElementById('linA').value) || 0;
+    const b = parseFloat(document.getElementById('linB').value) || 0;
+    const out = document.getElementById('linOut');
+    if (a === 0) { out.className = 'output err'; out.textContent = b === 0 ? '∞ решений' : 'Нет решений'; return; }
+    out.className = 'output ok'; out.textContent = `x = ${fmt(-b/a)}`;
+    pulseOutput(out);
+    incrementStat('calc');
+  });
+  document.getElementById('solveSq').addEventListener('click', () => {
+    const a = parseFloat(document.getElementById('sqA').value) || 0;
+    const b = parseFloat(document.getElementById('sqB').value) || 0;
+    const c = parseFloat(document.getElementById('sqC').value) || 0;
+    const out = document.getElementById('sqOut');
+    if (a === 0) { out.className = 'output err'; out.textContent = 'a ≠ 0 обязательно'; return; }
+    const D = b*b - 4*a*c;
+    out.className = 'output ok';
+    if (D > 0) out.textContent = `D = ${fmt(D)}\nx₁ = ${fmt((-b+Math.sqrt(D))/(2*a))}\nx₂ = ${fmt((-b-Math.sqrt(D))/(2*a))}`;
+    else if (D === 0) out.textContent = `D = 0\nx = ${fmt(-b/(2*a))}`;
+    else { const re = -b/(2*a), im = Math.sqrt(-D)/(2*a); out.textContent = `D = ${fmt(D)}\nx₁ = ${fmt(re)} + ${fmt(im)}i\nx₂ = ${fmt(re)} − ${fmt(im)}i`; }
+    pulseOutput(out); incrementStat('calc');
+  });
+  document.getElementById('solveSys').addEventListener('click', () => {
+    const a1 = parseFloat(document.getElementById('sysA1').value) || 0;
+    const b1 = parseFloat(document.getElementById('sysB1').value) || 0;
+    const c1 = parseFloat(document.getElementById('sysC1').value) || 0;
+    const a2 = parseFloat(document.getElementById('sysA2').value) || 0;
+    const b2 = parseFloat(document.getElementById('sysB2').value) || 0;
+    const c2 = parseFloat(document.getElementById('sysC2').value) || 0;
+    const out = document.getElementById('sysOut');
+    const D = a1*b2 - a2*b1;
+    if (Math.abs(D) < 1e-12) { out.className = 'output err'; out.textContent = 'D = 0, нет единственного решения'; return; }
+    out.className = 'output ok'; out.textContent = `x = ${fmt((c1*b2-c2*b1)/D)}\ny = ${fmt((a1*c2-a2*c1)/D)}`;
+    pulseOutput(out); incrementStat('calc');
+  });
+}
+bindEqSolve();
+
+// ═══════════════════════════════════════════════════════
+//  ШКОЛЬНИКУ
+// ═══════════════════════════════════════════════════════
+document.getElementById('solveIneq').addEventListener('click', () => {
+  const a = parseFloat(document.getElementById('ineqA').value) || 0;
+  const b = parseFloat(document.getElementById('ineqB').value) || 0;
+  const c = parseFloat(document.getElementById('ineqC').value) || 0;
+  const sign = document.getElementById('ineqSign').value;
+  const out = document.getElementById('ineqOut');
+  if (a === 0) { out.className = 'output err'; out.textContent = 'Это не квадратное неравенство'; return; }
   const D = b*b - 4*a*c;
+  let answer = '';
+  if (D < 0) {
+    answer = a > 0 ? 'x ∈ ℝ (все числа)' : 'нет решений';
+  } else if (D === 0) {
+    const x = -b/(2*a);
+    if ((a > 0 && (sign==='gt'||sign==='ge')) || (a < 0 && (sign==='lt'||sign==='le'))) {
+      if (sign==='gt' || sign==='lt') answer = `x ∈ ℝ \\ {${fmt(x)}}`;
+      else answer = 'x ∈ ℝ';
+    } else answer = 'нет решений';
+  } else {
+    const x1 = (-b - Math.sqrt(D))/(2*a);
+    const x2 = (-b + Math.sqrt(D))/(2*a);
+    const [lo, hi] = x1 < x2 ? [x1, x2] : [x2, x1];
+    if (a > 0) {
+      if (sign==='gt') answer = `x ∈ (−∞, ${fmt(lo)}) ∪ (${fmt(hi)}, +∞)`;
+      else if (sign==='ge') answer = `x ∈ (−∞, ${fmt(lo)}] ∪ [${fmt(hi)}, +∞)`;
+      else if (sign==='lt') answer = `x ∈ (${fmt(lo)}, ${fmt(hi)})`;
+      else answer = `x ∈ [${fmt(lo)}, ${fmt(hi)}]`;
+    } else {
+      if (sign==='gt') answer = `x ∈ (${fmt(lo)}, ${fmt(hi)})`;
+      else if (sign==='ge') answer = `x ∈ [${fmt(lo)}, ${fmt(hi)}]`;
+      else if (sign==='lt') answer = `x ∈ (−∞, ${fmt(lo)}) ∪ (${fmt(hi)}, +∞)`;
+      else answer = `x ∈ (−∞, ${fmt(lo)}] ∪ [${fmt(hi)}, +∞)`;
+    }
+  }
   out.className = 'output ok';
-  if (D > 0) out.textContent = `D = ${fmt(D)}\nx₁ = ${fmt((-b+Math.sqrt(D))/(2*a))}\nx₂ = ${fmt((-b-Math.sqrt(D))/(2*a))}`;
-  else if (D === 0) out.textContent = `D = 0\nx = ${fmt(-b/(2*a))}`;
-  else { const re = -b/(2*a), im = Math.sqrt(-D)/(2*a); out.textContent = `D = ${fmt(D)}\nx₁ = ${fmt(re)} + ${fmt(im)}i\nx₂ = ${fmt(re)} − ${fmt(im)}i`; }
-  incrementStat('calc');
+  out.textContent = `D = ${fmt(D)}\nОтвет: ${answer}`;
+  pulseOutput(out); incrementStat('calc');
 });
-document.getElementById('solveSys').addEventListener('click', () => {
-  const a1 = parseFloat(document.getElementById('sysA1').value) || 0;
-  const b1 = parseFloat(document.getElementById('sysB1').value) || 0;
-  const c1 = parseFloat(document.getElementById('sysC1').value) || 0;
-  const a2 = parseFloat(document.getElementById('sysA2').value) || 0;
-  const b2 = parseFloat(document.getElementById('sysB2').value) || 0;
-  const c2 = parseFloat(document.getElementById('sysC2').value) || 0;
-  const out = document.getElementById('sysOut');
-  const D = a1*b2 - a2*b1;
-  if (Math.abs(D) < 1e-12) { out.className = 'output err'; out.textContent = 'D = 0, нет единственного решения'; return; }
+document.getElementById('solveAp').addEventListener('click', () => {
+  const a1 = parseFloat(document.getElementById('apA1').value);
+  const d = parseFloat(document.getElementById('apD').value);
+  const n = parseInt(document.getElementById('apN').value);
+  const out = document.getElementById('apOut');
+  if (!n || n < 1) { out.className='output err'; out.textContent='n ≥ 1'; return; }
+  const an = a1 + (n-1)*d;
+  const Sn = n*(a1 + an)/2;
   out.className = 'output ok';
-  out.textContent = `x = ${fmt((c1*b2-c2*b1)/D)}\ny = ${fmt((a1*c2-a2*c1)/D)}`;
-  incrementStat('calc');
+  out.textContent = `aₙ = ${fmt(an)}\nSₙ = ${fmt(Sn)}`;
+  pulseOutput(out); incrementStat('calc');
+});
+document.getElementById('solveGp').addEventListener('click', () => {
+  const b1 = parseFloat(document.getElementById('gpB1').value);
+  const q = parseFloat(document.getElementById('gpQ').value);
+  const n = parseInt(document.getElementById('gpN').value);
+  const out = document.getElementById('gpOut');
+  if (!n || n < 1) { out.className='output err'; out.textContent='n ≥ 1'; return; }
+  const bn = b1 * Math.pow(q, n-1);
+  let Sn;
+  if (q === 1) Sn = b1 * n;
+  else Sn = b1 * (Math.pow(q, n) - 1) / (q - 1);
+  out.className = 'output ok';
+  out.textContent = `bₙ = ${fmt(bn)}\nSₙ = ${fmt(Sn)}`;
+  pulseOutput(out); incrementStat('calc');
+});
+document.getElementById('solveVec').addEventListener('click', () => {
+  const x = parseFloat(document.getElementById('vecX').value) || 0;
+  const y = parseFloat(document.getElementById('vecY').value) || 0;
+  const z = parseFloat(document.getElementById('vecZ').value) || 0;
+  const out = document.getElementById('vecOut');
+  out.className = 'output ok';
+  out.textContent = `|a| = √(${x}² + ${y}² + ${z}²) = ${fmt(Math.sqrt(x*x + y*y + z*z))}`;
+  pulseOutput(out); incrementStat('calc');
+});
+
+// ═══════════════════════════════════════════════════════
+//  ТРИГОНОМЕТРИЯ
+// ═══════════════════════════════════════════════════════
+(function buildTrigTable() {
+  const angles = [0, 30, 45, 60, 90, 120, 135, 150, 180];
+  const tbody = document.querySelector('#trigTable tbody');
+  angles.forEach(deg => {
+    const rad = deg * Math.PI / 180;
+    const sin = Math.sin(rad), cos = Math.cos(rad), tan = Math.tan(rad);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><b>${deg}°</b></td>
+      <td>${Math.abs(sin) < 1e-10 ? '0' : fmt(sin)}</td>
+      <td>${Math.abs(cos) < 1e-10 ? '0' : fmt(cos)}</td>
+      <td>${Math.abs(cos) < 1e-10 ? '∞' : fmt(tan)}</td>`;
+    tbody.appendChild(tr);
+  });
+})();
+function bindTrig() {
+  const getDeg = () => parseFloat(document.getElementById('trigDeg').value) || 0;
+  document.getElementById('trigSin').addEventListener('click', () => {
+    const out = document.getElementById('trigOut');
+    out.className = 'output ok'; out.textContent = `sin(${getDeg()}°) = ${fmt(Math.sin(getDeg()*Math.PI/180))}`;
+    pulseOutput(out);
+  });
+  document.getElementById('trigCos').addEventListener('click', () => {
+    const out = document.getElementById('trigOut');
+    out.className = 'output ok'; out.textContent = `cos(${getDeg()}°) = ${fmt(Math.cos(getDeg()*Math.PI/180))}`;
+    pulseOutput(out);
+  });
+  document.getElementById('trigTan').addEventListener('click', () => {
+    const out = document.getElementById('trigOut');
+    out.className = 'output ok'; out.textContent = `tan(${getDeg()}°) = ${fmt(Math.tan(getDeg()*Math.PI/180))}`;
+    pulseOutput(out);
+  });
+  const getVal = () => parseFloat(document.getElementById('trigVal').value) || 0;
+  document.getElementById('trigAsin').addEventListener('click', () => {
+    const out = document.getElementById('trigInvOut');
+    try { out.className = 'output ok'; out.textContent = `asin(${getVal()}) = ${fmt(Math.asin(getVal())*180/Math.PI)}°`; pulseOutput(out); }
+    catch { out.className = 'output err'; out.textContent = 'Не в области определения'; }
+  });
+  document.getElementById('trigAcos').addEventListener('click', () => {
+    const out = document.getElementById('trigInvOut');
+    try { out.className = 'output ok'; out.textContent = `acos(${getVal()}) = ${fmt(Math.acos(getVal())*180/Math.PI)}°`; pulseOutput(out); }
+    catch { out.className = 'output err'; out.textContent = 'Не в области определения'; }
+  });
+  document.getElementById('trigAtan').addEventListener('click', () => {
+    const out = document.getElementById('trigInvOut');
+    out.className = 'output ok'; out.textContent = `atan(${getVal()}) = ${fmt(Math.atan(getVal())*180/Math.PI)}°`;
+    pulseOutput(out);
+  });
+}
+bindTrig();
+
+// ═══════════════════════════════════════════════════════
+//  ВЕРОЯТНОСТЬ
+// ═══════════════════════════════════════════════════════
+function fact(n) { if (n < 0 || !Number.isInteger(n)) throw new Error('n ≥ 0, целое'); let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; }
+function C(n, k) { if (k < 0 || k > n) return 0; return fact(n) / (fact(k) * fact(n - k)); }
+function A(n, k) { if (k < 0 || k > n) return 0; return fact(n) / fact(n - k); }
+
+document.getElementById('combC').addEventListener('click', () => {
+  const n = parseInt(document.getElementById('cn').value) || 0;
+  const k = parseInt(document.getElementById('ck').value) || 0;
+  const out = document.getElementById('combOut');
+  try { out.className='output ok'; out.textContent = `C(${n}, ${k}) = ${fmt(C(n,k))}`; pulseOutput(out); }
+  catch (e) { out.className='output err'; out.textContent = e.message; }
+});
+document.getElementById('combA').addEventListener('click', () => {
+  const n = parseInt(document.getElementById('cn').value) || 0;
+  const k = parseInt(document.getElementById('ck').value) || 0;
+  const out = document.getElementById('combOut');
+  try { out.className='output ok'; out.textContent = `A(${n}, ${k}) = ${fmt(A(n,k))}`; pulseOutput(out); }
+  catch (e) { out.className='output err'; out.textContent = e.message; }
+});
+document.getElementById('combP').addEventListener('click', () => {
+  const n = parseInt(document.getElementById('cn').value) || 0;
+  const out = document.getElementById('combOut');
+  try { out.className='output ok'; out.textContent = `${n}! = ${fmt(fact(n))}`; pulseOutput(out); }
+  catch (e) { out.className='output err'; out.textContent = e.message; }
+});
+document.getElementById('binomBtn').addEventListener('click', () => {
+  const a = parseFloat(document.getElementById('binomA').value) || 0;
+  const b = parseFloat(document.getElementById('binomB').value) || 0;
+  const n = parseInt(document.getElementById('binomN').value) || 0;
+  const out = document.getElementById('binomOut');
+  if (n < 0 || n > 10) { out.className='output err'; out.textContent = 'n от 0 до 10'; return; }
+  const parts = [];
+  for (let k = 0; k <= n; k++) {
+    const c = C(n, k);
+    const aPow = n - k;
+    const bPow = k;
+    let term = '';
+    if (c !== 1 || (aPow === 0 && bPow === 0)) term += fmt(c);
+    if (aPow > 0) term += (term && !term.endsWith('·') ? '·' : '') + (a === 1 ? '' : fmt(a)) + 'a' + (aPow > 1 ? '^' + aPow : '');
+    if (bPow > 0) term += (term && !term.endsWith('·') ? '·' : '') + (b === 1 ? '' : fmt(b)) + 'b' + (bPow > 1 ? '^' + bPow : '');
+    if (!term) term = '1';
+    parts.push(term);
+  }
+  out.className = 'output ok';
+  out.textContent = parts.join(' + ').replace(/\+ -/g, '− ');
+  pulseOutput(out); incrementStat('calc');
+});
+document.getElementById('statBtn').addEventListener('click', () => {
+  const out = document.getElementById('statOut');
+  try {
+    const arr = document.getElementById('statData').value.split(/[,\s;]+/).filter(Boolean).map(Number).filter(x => !isNaN(x));
+    if (!arr.length) throw new Error('Введите числа');
+    const n = arr.length;
+    const mean = arr.reduce((a,b)=>a+b,0) / n;
+    const sorted = [...arr].sort((a,b)=>a-b);
+    const median = n % 2 ? sorted[(n-1)/2] : (sorted[n/2-1] + sorted[n/2]) / 2;
+    const variance = arr.reduce((s,x)=>s+(x-mean)**2, 0) / n;
+    const sd = Math.sqrt(variance);
+    const mode = (() => {
+      const freq = {};
+      arr.forEach(x => freq[x] = (freq[x] || 0) + 1);
+      let maxF = 0, mode = [];
+      for (const [k, v] of Object.entries(freq)) {
+        if (v > maxF) { maxF = v; mode = [k]; }
+        else if (v === maxF) mode.push(k);
+      }
+      return mode.join(', ');
+    })();
+    out.className = 'output ok';
+    out.textContent = `n = ${n}\nСреднее = ${fmt(mean)}\nМедиана = ${fmt(median)}\nМода = ${mode}\nДисперсия = ${fmt(variance)}\nσ = ${fmt(sd)}\nМин/Макс = ${fmt(sorted[0])} / ${fmt(sorted[n-1])}`;
+    pulseOutput(out); incrementStat('calc');
+  } catch (e) { out.className='output err'; out.textContent = e.message; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  ПРОГРАММИСТУ
+// ═══════════════════════════════════════════════════════
+function devParseNum() {
+  const s = document.getElementById('devNum').value.trim();
+  if (/^0x/i.test(s)) return parseInt(s, 16);
+  if (/^0b/i.test(s)) return parseInt(s, 2);
+  if (/^0o/i.test(s)) return parseInt(s, 8);
+  return parseInt(s, 10);
+}
+document.getElementById('devBin').addEventListener('click', () => {
+  const n = devParseNum();
+  const out = document.getElementById('devOut');
+  out.className='output ok'; out.textContent = `bin: 0b${n.toString(2)}\noct: 0o${n.toString(8)}\ndec: ${n}\nhex: 0x${n.toString(16).toUpperCase()}`;
+  pulseOutput(out);
+});
+document.getElementById('devOct').addEventListener('click', () => {
+  const n = devParseNum();
+  const out = document.getElementById('devOut');
+  out.className='output ok'; out.textContent = `oct: 0o${n.toString(8)}`;
+  pulseOutput(out);
+});
+document.getElementById('devDec').addEventListener('click', () => {
+  const n = devParseNum();
+  const out = document.getElementById('devOut');
+  out.className='output ok'; out.textContent = `dec: ${n}`;
+  pulseOutput(out);
+});
+document.getElementById('devHex').addEventListener('click', () => {
+  const n = devParseNum();
+  const out = document.getElementById('devOut');
+  out.className='output ok'; out.textContent = `hex: 0x${n.toString(16).toUpperCase()}`;
+  pulseOutput(out);
+});
+document.querySelectorAll('.bit-grid button').forEach(b => {
+  b.addEventListener('click', () => {
+    const a = parseInt(document.getElementById('bitA').value) || 0;
+    const b_ = parseInt(document.getElementById('bitB').value) || 0;
+    const out = document.getElementById('bitOut');
+    let result;
+    const op = b.dataset.op;
+    if (op === 'and') result = a & b_;
+    else if (op === 'or') result = a | b_;
+    else if (op === 'xor') result = a ^ b_;
+    else if (op === 'not') result = ~a;
+    else if (op === 'lshift') result = a << b_;
+    else if (op === 'rshift') result = a >> b_;
+    else if (op === 'ushr') result = a >>> b_;
+    else if (op === 'popcnt') {
+      let n = a >>> 0, c = 0;
+      while (n) { c += n & 1; n >>>= 1; }
+      out.className='output ok';
+      out.textContent = `popcount(${a}) = ${c}`;
+      pulseOutput(out); return;
+    }
+    out.className='output ok';
+    out.textContent = `${a} ${op} ${b_} = ${result}\nbin: ${result.toString(2)}\nhex: 0x${(result >>> 0).toString(16).toUpperCase()}`;
+    pulseOutput(out);
+  });
+});
+document.getElementById('encB64').addEventListener('click', () => {
+  const t = document.getElementById('encText').value;
+  const out = document.getElementById('encOut');
+  try {
+    out.className='output ok';
+    out.textContent = `btoa: ${btoa(unescape(encodeURIComponent(t)))}\natob: ${decodeURIComponent(escape(atob(btoa(unescape(encodeURIComponent(t))))))}`;
+    pulseOutput(out);
+  } catch { out.className='output err'; out.textContent='Ошибка кодирования'; }
+});
+document.getElementById('encHex').addEventListener('click', () => {
+  const t = document.getElementById('encText').value;
+  const out = document.getElementById('encOut');
+  let hex = '', bytes = '';
+  for (let i = 0; i < t.length; i++) {
+    const code = t.charCodeAt(i);
+    hex += code.toString(16).padStart(2, '0') + ' ';
+    bytes += String.fromCharCode(code);
+  }
+  out.className='output ok';
+  out.textContent = `hex: ${hex.trim().toUpperCase()}\ndec: ${Array.from(t).map(c => c.charCodeAt(0)).join(' ')}`;
+  pulseOutput(out);
+});
+document.getElementById('encAscii').addEventListener('click', () => {
+  const t = document.getElementById('encText').value;
+  const out = document.getElementById('encOut');
+  out.className='output ok';
+  out.textContent = Array.from(t).map(c => `${c} = ${c.charCodeAt(0)}`).join('\n');
+  pulseOutput(out);
+});
+document.getElementById('encCrc').addEventListener('click', () => {
+  const t = document.getElementById('encText').value;
+  const out = document.getElementById('encOut');
+  // CRC32
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < t.length; i++) {
+    crc ^= t.charCodeAt(i);
+    for (let j = 0; j < 8; j++) crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
+  }
+  crc = (crc ^ 0xFFFFFFFF) >>> 0;
+  out.className='output ok';
+  out.textContent = `CRC32("${t}") = 0x${crc.toString(16).toUpperCase().padStart(8, '0')}`;
+  pulseOutput(out);
+});
+document.getElementById('logBtn').addEventListener('click', () => {
+  const expr = document.getElementById('logExpr').value;
+  const out = document.getElementById('logOut');
+  const vars = [...new Set(expr.match(/[A-Z]/g) || [])].sort();
+  if (!vars.length) { out.className='output err'; out.textContent='Используйте переменные A, B, C...'; return; }
+  if (vars.length > 4) { out.className='output err'; out.textContent='Максимум 4 переменные'; return; }
+  const jsExpr = expr.replace(/&&/g, '&&').replace(/\|\|/g, '||').replace(/!/g, '!').replace(/([A-Z])/g, 'env.$1');
+  const rows = [];
+  const total = 1 << vars.length;
+  rows.push(`<tr><th>${vars.join('</th><th>')}</th><th>Результат</th></tr>`);
+  for (let i = 0; i < total; i++) {
+    const env = {};
+    vars.forEach((v, j) => env[v] = !!(i & (1 << (vars.length - 1 - j))));
+    let result;
+    try { result = eval(jsExpr.replace(/env\./g, '')); } catch { result = '?'; }
+    // безопасный eval через Function
+    try {
+      const fn = new Function(...vars, `return (${expr.replace(/&&/g,'&&').replace(/\|\|/g,'||').replace(/!/g,'!')});`);
+      result = fn(...vars.map(v => env[v]));
+    } catch { result = '?'; }
+    rows.push(`<tr>${vars.map(v => `<td>${env[v]?'1':'0'}</td>`).join('')}<td><b>${result?'1':'0'}</b></td></tr>`);
+  }
+  out.className='output ok';
+  out.innerHTML = `<table class="value-table">${rows.join('')}</table>`;
+  pulseOutput(out); incrementStat('calc');
 });
 
 // ═══════════════════════════════════════════════════════
@@ -1681,13 +2346,9 @@ function handleGraphKey(cmd) {
     if (s !== e) input.value = input.value.slice(0, s) + input.value.slice(e);
     else if (s > 0) input.value = input.value.slice(0, s - 1) + input.value.slice(s);
     input.focus();
-  } else if (cmd === '__CLEAR__') {
-    input.value = '';
-    input.focus();
-  } else if (cmd === '__DRAW__') {
-    drawGraph();
-    return;
-  } else {
+  } else if (cmd === '__CLEAR__') { input.value = ''; input.focus(); }
+  else if (cmd === '__DRAW__') { drawGraph(); return; }
+  else {
     const s = input.selectionStart, e = input.selectionEnd;
     input.value = input.value.slice(0, s) + cmd + input.value.slice(e);
     input.selectionStart = input.selectionEnd = s + cmd.length;
@@ -1702,6 +2363,7 @@ let drawTimer = null;
 function scheduleDraw() { clearTimeout(drawTimer); drawTimer = setTimeout(drawGraph, 250); }
 
 function drawGraph() {
+  if (!graphCanvas) return;
   const wrap = graphCanvas.parentElement;
   const w = wrap.clientWidth - 12;
   const h = Math.max(240, Math.min(360, w * 0.7));
@@ -1719,16 +2381,13 @@ function drawGraph() {
   const cAxis  = style.getPropertyValue('--text-mute').trim() || '#5b6473';
   const cGrid  = style.getPropertyValue('--border').trim() || '#262c36';
 
-  ctx.fillStyle = cBg;
-  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = cBg; ctx.fillRect(0, 0, w, h);
 
   const cx = w/2 - graphCenter.x * (w / (2*graphRange));
   const cy = h/2 + graphCenter.y * (h / (2*graphRange));
   const scale = w / (2 * graphRange);
 
-  ctx.strokeStyle = cGrid;
-  ctx.globalAlpha = 0.4;
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = cGrid; ctx.globalAlpha = 0.4; ctx.lineWidth = 1;
   const step = graphRange <= 5 ? 0.5 : (graphRange <= 20 ? 1 : 2);
   for (let x = -100; x <= 100; x += step) {
     const px = cx + x * scale;
@@ -1742,13 +2401,11 @@ function drawGraph() {
   }
   ctx.globalAlpha = 1;
 
-  ctx.strokeStyle = cAxis;
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = cAxis; ctx.lineWidth = 1.5;
   ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
 
-  ctx.fillStyle = cText;
-  ctx.font = '11px system-ui, sans-serif';
+  ctx.fillStyle = cText; ctx.font = '11px system-ui, sans-serif';
   ctx.textAlign = 'center';
   const labelStep = graphRange <= 5 ? 1 : (graphRange <= 20 ? 5 : 10);
   for (let x = -100; x <= 100; x += labelStep) {
@@ -1765,16 +2422,13 @@ function drawGraph() {
 
   graphFns.forEach(fn => {
     if (!fn.visible || !fn.expr.trim()) return;
-    ctx.strokeStyle = fn.color;
-    ctx.lineWidth = 2.5;
-    ctx.lineJoin = 'round';
+    ctx.strokeStyle = fn.color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
     ctx.beginPath();
     let started = false;
     for (let px = 0; px <= w; px++) {
       const x = (px - cx) / scale;
       let y;
-      try { y = safeEvalX(fn.expr, x); }
-      catch { started = false; continue; }
+      try { y = safeEvalX(fn.expr, x); } catch { started = false; continue; }
       if (!Number.isFinite(y)) { started = false; continue; }
       const py = cy - y * scale;
       if (py < -h*2 || py > h*3) { started = false; continue; }
@@ -1793,10 +2447,7 @@ document.getElementById('graphAddFn').addEventListener('click', () => {
   STORE.set('graphFns', graphFns);
   activeFnIndex = graphFns.length - 1;
   renderGraphFns();
-  setTimeout(() => {
-    const inp = graphFnsEl.querySelector(`input[data-idx="${activeFnIndex}"]`);
-    if (inp) inp.focus();
-  }, 50);
+  setTimeout(() => { const inp = graphFnsEl.querySelector(`input[data-idx="${activeFnIndex}"]`); if (inp) inp.focus(); }, 50);
 });
 document.getElementById('graphDraw').addEventListener('click', drawGraph);
 document.getElementById('graphZoomIn').addEventListener('click', () => { graphRange = Math.max(0.5, graphRange/1.5); drawGraph(); });
@@ -1823,7 +2474,7 @@ document.getElementById('graphShare').addEventListener('click', () => {
     const a = document.createElement('a');
     a.href = url; a.download = 'graph.png'; a.click();
     showToast('✓ График сохранён');
-  } catch { showToast('⚠ Не удалось сохранить'); }
+  } catch { showToast('⚠ Не удалось'); }
 });
 
 let dragStart = null, pinchStart = null;
@@ -1872,12 +2523,9 @@ graphCanvas.addEventListener('wheel', (e) => {
   scheduleDraw();
 }, { passive: false });
 graphCanvas.addEventListener('dblclick', () => { graphRange = 10; graphCenter = { x: 0, y: 0 }; drawGraph(); });
-window.addEventListener('resize', () => {
-  if (document.querySelector('.panel.active')?.dataset.panel === 'graph') drawGraph();
-});
 
 // ═══════════════════════════════════════════════════════
-//  ПРОИЗВОДНЫЕ / ИНТЕГРАЛЫ
+//  ПРОИЗВОДНЫЕ
 // ═══════════════════════════════════════════════════════
 function symbolicDerivative(expr) {
   const cleaned = expr.replace(/\s+/g, '');
@@ -1931,7 +2579,7 @@ function derivativeOfTerm(term) {
 document.getElementById('derivBtn').addEventListener('click', () => {
   const expr = document.getElementById('derivExpr').value;
   const out = document.getElementById('derivOut');
-  try { out.textContent = `f'(x) = ${symbolicDerivative(expr)}`; out.className = 'output ok'; }
+  try { out.textContent = `f'(x) = ${symbolicDerivative(expr)}`; out.className = 'output ok'; pulseOutput(out); }
   catch (e) { out.textContent = 'Ошибка: ' + e.message; out.className = 'output err'; }
 });
 document.getElementById('derivEval').addEventListener('click', () => {
@@ -1943,6 +2591,7 @@ document.getElementById('derivEval').addEventListener('click', () => {
     const f1 = safeEvalX(expr, x0+h), f2 = safeEvalX(expr, x0-h);
     out.className = 'output ok';
     out.textContent = `f'(${x0}) ≈ ${fmt((f1-f2)/(2*h))}`;
+    pulseOutput(out);
   } catch (e) { out.className = 'output err'; out.textContent = 'Ошибка: ' + e.message; }
 });
 document.getElementById('intBtn').addEventListener('click', () => {
@@ -1956,7 +2605,7 @@ document.getElementById('intBtn').addEventListener('click', () => {
     for (let i = 0; i < n; i++) sum += safeEvalX(expr, a + (i+0.5)*dx);
     out.className = 'output ok';
     out.textContent = `∫[${a}..${b}] f(x)dx ≈ ${fmt(sum*dx)}`;
-    incrementStat('calc');
+    pulseOutput(out); incrementStat('calc');
   } catch (e) { out.className = 'output err'; out.textContent = 'Ошибка: ' + e.message; }
 });
 
@@ -2095,8 +2744,7 @@ document.getElementById('saveMatrix').addEventListener('click', () => {
   const data = Array.from({length:r}, () => Array(c).fill(0));
   matrixInputsEl.querySelectorAll('input').forEach(inp => { data[+inp.dataset.i][+inp.dataset.j] = parseFloat(inp.value) || 0; });
   const m = {rows:r, cols:c, data};
-  if (matrixModalTarget === 'A') matrixA = m;
-  else matrixB = m;
+  if (matrixModalTarget === 'A') matrixA = m; else matrixB = m;
   matrixResult = null;
   matrixModal.classList.remove('open');
   renderMatrixPanel();
@@ -2141,8 +2789,10 @@ function convertNow() {
   const v = parseFloat(document.getElementById('convInput').value) || 0;
   const from = document.getElementById('convFrom').value, to = document.getElementById('convTo').value;
   const r = CONV_CATEGORIES[convCategory].convert(v, from, to);
-  document.getElementById('convResult').textContent = fmt(r);
+  const resEl = document.getElementById('convResult');
+  resEl.textContent = fmt(r);
   document.getElementById('convResultUnit').textContent = to;
+  pulseOutput(document.querySelector('.conv-result'));
 }
 document.getElementById('convInput').addEventListener('input', convertNow);
 document.getElementById('convFrom').addEventListener('change', convertNow);
@@ -2237,8 +2887,7 @@ document.getElementById('pomoStart').addEventListener('click', () => {
       clearInterval(pomoInterval); pomoRunning = false;
       pomoTimeEl.classList.remove('ticking');
       incrementStat('pomo');
-      haptic('success');
-      fireConfetti();
+      haptic('success'); fireConfetti();
       showToast(pomoMode === 'work' ? '✓ Работа завершена!' : '✓ Отдых завершён!');
       pomoMode = pomoMode === 'work' ? 'break' : 'work';
       pomoTime = pomoMode === 'work' ? 25*60 : 5*60;
@@ -2304,6 +2953,7 @@ document.getElementById('statReset').addEventListener('click', () => {
 // ═══════════════════════════════════════════════════════
 function setupSwitch(id, key, def, onChange) {
   const el = document.getElementById(id);
+  if (!el) return;
   const cur = STORE.get(key, def);
   el.classList.toggle('on', cur);
   el.addEventListener('click', () => {
@@ -2313,26 +2963,65 @@ function setupSwitch(id, key, def, onChange) {
     onChange && onChange(now);
   });
 }
+function renderThemePicker() {
+  const grid = document.getElementById('themeGrid');
+  if (!grid) return;
+  const themes = [
+    { id:'blue',    c1:'#5b9dff', c2:'#7c5cff' },
+    { id:'emerald', c1:'#3ecf8e', c2:'#22a06b' },
+    { id:'rose',    c1:'#ff5b6e', c2:'#d63a4d' },
+    { id:'amber',   c1:'#ffb454', c2:'#f39c12' },
+    { id:'teal',    c1:'#2dd4bf', c2:'#189e8e' },
+    { id:'violet',  c1:'#a78bfa', c2:'#7c5cff' },
+    { id:'pink',    c1:'#f472b6', c2:'#db2777' },
+  ];
+  const current = STORE.get('accent', 'blue');
+  grid.innerHTML = themes.map(t => `
+    <div class="theme-swatch ${current===t.id?'active':''}"
+         data-theme="${t.id}"
+         style="background:linear-gradient(135deg, ${t.c1}, ${t.c2})"></div>
+  `).join('') + `<div class="theme-swatch ${current==='custom'?'active':''}" data-theme="custom" style="background:linear-gradient(135deg,#666,#999);display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px">✎</div>`;
+  grid.querySelectorAll('.theme-swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      STORE.set('accent', sw.dataset.theme);
+      applyTheme();
+      renderThemePicker();
+      haptic();
+    });
+  });
+  document.getElementById('customAccent1').value = STORE.get('customAccent1', '#5b9dff');
+  document.getElementById('customAccent2').value = STORE.get('customAccent2', '#7c5cff');
+}
+document.getElementById('applyCustom').addEventListener('click', () => {
+  STORE.set('customAccent1', document.getElementById('customAccent1').value);
+  STORE.set('customAccent2', document.getElementById('customAccent2').value);
+  STORE.set('accent', 'custom');
+  applyTheme();
+  renderThemePicker();
+  showToast('✓ Своя тема применена');
+});
+setupSwitch('darkSwitch', 'darkModeToggle', false, () => {});
+(function initDarkSwitch() {
+  const el = document.getElementById('darkSwitch');
+  const theme = STORE.get('theme', 'dark');
+  el.classList.toggle('on', theme === 'dark');
+  el.addEventListener('click', () => {
+    const now = el.classList.contains('on');
+    STORE.set('theme', now ? 'dark' : 'light');
+    applyTheme();
+  });
+})();
 setupSwitch('soundSwitch', 'sound', false, () => playClick());
 setupSwitch('vibrateSwitch', 'vibrate', true, () => haptic());
 setupSwitch('confettiSwitch', 'confetti', true, (on) => { if (on) fireConfetti(); });
-setupSwitch('bgSwitch', 'bg', true, (on) => {
-  document.body.classList.toggle('no-bg', !on);
-});
+setupSwitch('bgSwitch', 'bg', true, (on) => { document.body.classList.toggle('no-bg', !on); });
 document.getElementById('resetAll').addEventListener('click', () => {
-  if (!confirm('Сбросить всё: историю, заметки, закладки, статистику?')) return;
-  ['history','notes','bookmarks','stats','memory','graphFns','theme','sound','vibrate','confetti','bg'].forEach(k => {
-    try { localStorage.removeItem('calc_' + k); } catch {}
-  });
+  if (!confirm('Сбросить всё?')) return;
+  Object.keys(localStorage).filter(k => k.startsWith('calc_')).forEach(k => localStorage.removeItem(k));
   location.reload();
 });
 
-// ═══════════════════════════════════════════════════════
-//  ИНИЦИАЛИЗАЦИЯ
-// ═══════════════════════════════════════════════════════
-updateScreen();
-memUpdate();
-updateTabsArrows();
+renderThemePicker();
 renderGraphFns();
 renderGraphKeys();
 renderGraphPresets();
@@ -2341,6 +3030,9 @@ renderConvCategories();
 renderConvUnits();
 convertNow();
 renderMatrixPanel();
+updateScreen();
+memUpdate();
+updateTabsArrows();
 </script>
 </body>
 </html>
