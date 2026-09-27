@@ -325,6 +325,12 @@
   .modal-btn.red { background:linear-gradient(135deg,#ff5b6e,#d63a4d); border-top:1px solid var(--border); }
 
   /* Графики */
+  .graph-wrap {
+    position:relative; background:var(--bg-panel);
+    border:1px solid var(--border); border-radius:var(--radius);
+    padding:6px; box-shadow:var(--shadow); overflow:hidden;
+    flex:0 0 auto;
+  }
   #graphCanvas {
     width:100%; height:auto; display:block;
     border-radius:8px;
@@ -371,6 +377,7 @@
     border:none; border-radius:9px; cursor:pointer; font-family:inherit;
     transition:transform 0.1s, filter 0.15s;
     font-variant-numeric:tabular-nums;
+    position:relative; overflow:hidden;
   }
   .graph-keys button:hover { filter:brightness(1.15); }
   .graph-keys button:active { transform:scale(0.94); }
@@ -586,7 +593,6 @@
   .switch.on { background:var(--accent); }
   .switch.on::after { transform:translateX(18px); }
 
-  /* Toast */
   .toast {
     position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px);
     background:var(--bg-elev); border:1px solid var(--border);
@@ -695,28 +701,9 @@
 
   <!-- ═══════ ГРАФИКИ ═══════ -->
   <div class="panel" data-panel="graph">
-    <div class="card">
-      <h3>Функции</h3>
-      <div id="graphFns"></div>
-      <button class="btn ghost" id="graphAddFn" style="width:100%;margin-top:6px;">+ Добавить функцию</button>
 
-      <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin:12px 0 6px;">Быстрые пресеты</div>
-      <div class="graph-presets" id="graphPresets"></div>
-
-      <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin:12px 0 6px;">Ввод</div>
-      <div class="graph-keys" id="graphKeys"></div>
-
-      <div class="btn-row" style="margin-top:10px;">
-        <button class="btn success" id="graphDraw" style="flex:2">Построить</button>
-        <button class="btn ghost" id="graphAuto" title="Авто-масштаб">⛶</button>
-        <button class="btn ghost" id="graphZoomIn">+</button>
-        <button class="btn ghost" id="graphZoomOut">−</button>
-        <button class="btn ghost" id="graphReset">⟲</button>
-        <button class="btn ghost" id="graphShare" title="Скачать PNG">⬇</button>
-      </div>
-    </div>
-
-    <div class="graph-wrap" style="position:relative;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);padding:6px;box-shadow:var(--shadow);overflow:hidden;">
+    <!-- График сверху, всегда виден -->
+    <div class="graph-wrap">
       <canvas id="graphCanvas"></canvas>
       <div class="graph-info">
         <span id="graphRangeX">x ∈ [−10, 10]</span>
@@ -724,13 +711,45 @@
       </div>
     </div>
 
+    <!-- Компактная панель управления -->
     <div class="card" style="padding:10px;">
-      <div style="font-size:12px;color:var(--text-dim);line-height:1.6">
-        <b>Пишите как в тетради:</b> <code>2x</code>, <code>3x^2</code>, <code>sin(x)</code>, <code>x^3 - 2x + 1</code>, <code>1/x</code>, <code>√x</code>, <code>ln(x)</code>.<br>
-        <b>Авто-исправление:</b> <code>3x</code>→<code>3*x</code>, <code>x2</code>→<code>x^2</code>, <code>2π</code>→<code>2*π</code>, <code>(x+1)(x-2)</code>→<code>(x+1)*(x-2)</code>.<br>
-        <b>Жесты:</b> тащите — сдвиг, щипок — зум, двойной тап — сброс.
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="btn success" id="graphDraw" style="flex:1;">Построить</button>
+        <button class="btn ghost" id="graphAuto" title="Авто-масштаб" style="flex:0 0 44px;">⛶</button>
+        <button class="btn ghost" id="graphZoomIn" style="flex:0 0 44px;">+</button>
+        <button class="btn ghost" id="graphZoomOut" style="flex:0 0 44px;">−</button>
+        <button class="btn ghost" id="graphReset" style="flex:0 0 44px;">⟲</button>
+        <button class="btn ghost" id="graphShare" title="Скачать PNG" style="flex:0 0 44px;">⬇</button>
       </div>
     </div>
+
+    <!-- Сворачиваемая секция -->
+    <div class="card" style="padding:0;overflow:hidden;">
+      <button id="graphPanelToggle" style="width:100%;background:transparent;border:none;color:var(--text);padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;justify-content:space-between;align-items:center;">
+        <span>⚙️ Настройка функций и ввод</span>
+        <span id="graphPanelArrow" style="transition:transform 0.25s;display:inline-block;">▾</span>
+      </button>
+
+      <div id="graphPanelBody" style="padding:0 14px 14px;display:none;">
+        <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin:8px 0 6px;">Функции</div>
+        <div id="graphFns"></div>
+        <button class="btn ghost" id="graphAddFn" style="width:100%;margin-top:6px;">+ Добавить функцию</button>
+
+        <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin:12px 0 6px;">Быстрые пресеты</div>
+        <div class="graph-presets" id="graphPresets"></div>
+
+        <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin:12px 0 6px;">Ввод</div>
+        <div class="graph-keys" id="graphKeys"></div>
+
+        <div class="card" style="padding:10px;margin-top:12px;box-shadow:none;background:var(--bg-elev);">
+          <div style="font-size:12px;color:var(--text-dim);line-height:1.6">
+            <b>Пишите как в тетради:</b> <code>2x</code>, <code>3x^2</code>, <code>sin(x)</code>, <code>1/x</code>, <code>√x</code>, <code>ln(x)</code>.<br>
+            <b>Авто-исправление:</b> <code>3x</code>→<code>3*x</code>, <code>x2</code>→<code>x^2</code>, <code>2π</code>→<code>2*π</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ═══════ МАТРИЦЫ ═══════ -->
@@ -890,7 +909,6 @@
 <div id="confetti"></div>
 <div class="toast" id="toast"></div>
 
-<!-- Модалки -->
 <div class="modal" id="historyModal">
   <div class="modal-box">
     <h3>История</h3>
@@ -1106,7 +1124,6 @@ function parse(tokens, env) {
 }
 function safeEval(expr, env) { return parse(tokenize(preprocess(expr)), env); }
 function safeEvalX(expr, x) {
-  // нормализуем "как в тетради" → машинная запись
   let prepared = smartMathInput(expr);
   prepared = preprocess(prepared);
   return parse(tokenize(prepared), { x });
@@ -1126,26 +1143,18 @@ function engineering(v) {
   const mant = v / Math.pow(10, exp);
   return `${fmt(mant)}·10^${exp}`;
 }
-
-// ─── УМНЫЙ ВВОД ДЛЯ ГРАФИКОВ ───
 function smartMathInput(s) {
   let r = s;
   r = r.replace(/π/g, 'pi');
-  // 3x → 3*x; 3( → 3*(; 3√ → 3*√
   r = r.replace(/(\d)([a-zA-Z(√])/g, '$1*$2');
-  // x2 → x^2 (но не трогаем sin, cos, и т.п., т.к. там не цифра после)
   r = r.replace(/([a-zA-Z)])(\d+)/g, '$1^$2');
-  // )( → )*(
   r = r.replace(/\)\s*\(/g, ')*(');
-  // x( → x*( ; )x → )*x
   r = r.replace(/([a-zA-Z0-9)])(\()/g, '$1*$2');
-  // xx → x*x (кроме имён функций)
   r = r.replace(/([a-zA-Z])\s*([a-zA-Z])/g, function(m, a, b) {
     const known = ['sin','cos','tan','ln','log','pi','abs','sqrt','exp','ctg','sec','csc','e'];
     if (known.includes(a) || known.includes(b)) return m;
     return a + '*' + b;
   });
-  // убираем лишние * после ^
   r = r.replace(/\^\s*\*/g, '^');
   return r;
 }
@@ -1530,6 +1539,22 @@ let graphRange = 10;
 let graphCenter = { x: 0, y: 0 };
 let activeFnIndex = 0;
 
+const graphPanelToggle = document.getElementById('graphPanelToggle');
+const graphPanelBody = document.getElementById('graphPanelBody');
+const graphPanelArrow = document.getElementById('graphPanelArrow');
+let graphPanelOpen = STORE.get('graphPanelOpen', false);
+function applyGraphPanel() {
+  graphPanelBody.style.display = graphPanelOpen ? 'block' : 'none';
+  graphPanelArrow.style.transform = graphPanelOpen ? 'rotate(180deg)' : 'rotate(0)';
+}
+applyGraphPanel();
+graphPanelToggle.addEventListener('click', () => {
+  graphPanelOpen = !graphPanelOpen;
+  STORE.set('graphPanelOpen', graphPanelOpen);
+  applyGraphPanel();
+  haptic();
+});
+
 function renderGraphFns() {
   graphFnsEl.innerHTML = '';
   graphFns.forEach((fn, i) => {
@@ -1679,7 +1704,7 @@ function scheduleDraw() { clearTimeout(drawTimer); drawTimer = setTimeout(drawGr
 function drawGraph() {
   const wrap = graphCanvas.parentElement;
   const w = wrap.clientWidth - 12;
-  const h = Math.max(260, Math.min(420, w * 0.75));
+  const h = Math.max(240, Math.min(360, w * 0.7));
   const dpr = window.devicePixelRatio || 1;
   graphCanvas.width = w * dpr;
   graphCanvas.height = h * dpr;
