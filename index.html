@@ -6,8 +6,6 @@
 <meta name="theme-color" content="#0e1116">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
-<link rel="manifest" href="./manifest.json">
 <title>Калькулятор Pro MAX</title>
 <style>
   :root {
@@ -33,7 +31,6 @@
     --btn-ctrl-bg:#e2e7ef; --btn-ctrl-text:#5b6473;
     --shadow:0 4px 20px rgba(20,30,60,0.08);
   }
-  /* Акцентные цвета (из выбранной темы) */
   html.theme-emerald { --accent:#3ecf8e; --accent-2:#22a06b; --glow-1:rgba(62,207,142,0.10); --glow-2:rgba(34,160,107,0.10); }
   html.theme-rose    { --accent:#ff5b6e; --accent-2:#d63a4d; --glow-1:rgba(255,91,110,0.10); --glow-2:rgba(214,58,77,0.10); }
   html.theme-amber   { --accent:#ffb454; --accent-2:#f39c12; --glow-1:rgba(255,180,84,0.10); --glow-2:rgba(243,156,18,0.10); }
@@ -74,19 +71,17 @@
     gap:6px; max-width:640px; margin:0 auto;
   }
 
-  /* ── Вкладки со свайпом ── */
   .tabs-wrap {
     display:flex; align-items:center; gap:2px;
     background:var(--bg-elev); border:1px solid var(--border);
     border-radius:var(--radius); padding:4px;
     box-shadow:var(--shadow); flex:0 0 auto;
-    transition:background 0.4s, border-color 0.4s;
   }
   .tabs-arrow {
     flex:0 0 auto; width:32px; height:36px;
     background:transparent; border:none; color:var(--text-dim);
     font-size:18px; font-weight:700; cursor:pointer;
-    border-radius:8px; transition:background 0.15s, color 0.15s, transform 0.15s;
+    border-radius:8px;
   }
   .tabs-arrow:active { background:var(--accent); color:#fff; transform:scale(0.9); }
   .tabs-arrow.hidden { display:none; }
@@ -112,14 +107,9 @@
     box-shadow:0 2px 12px var(--glow-1);
     animation:tabPop 0.3s cubic-bezier(0.4, 1.6, 0.5, 1);
   }
-  @keyframes tabPop {
-    0% { transform:scale(0.94); } 60% { transform:scale(1.04); } 100% { transform:scale(1); }
-  }
+  @keyframes tabPop { 0% { transform:scale(0.94); } 60% { transform:scale(1.04); } 100% { transform:scale(1); } }
 
-  /* ── Панели со свайпом ── */
-  .panels-viewport {
-    flex:1; overflow:hidden; position:relative; min-height:0;
-  }
+  .panels-viewport { flex:1; overflow:hidden; position:relative; min-height:0; }
   .panels-track {
     display:flex; height:100%;
     transition:transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1);
@@ -129,8 +119,7 @@
   .panel {
     flex:0 0 100%; min-width:100%;
     display:flex; flex-direction:column; gap:6px;
-    overflow-y:auto; padding-right:2px;
-    padding-bottom:4px;
+    overflow-y:auto; padding-right:2px; padding-bottom:4px;
   }
   .panel::-webkit-scrollbar { width:5px; }
   .panel::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
@@ -166,7 +155,6 @@
     min-height:96px;
     box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,0.03);
     position:relative; overflow:hidden;
-    transition:background 0.4s, border-color 0.4s;
   }
   .display.flash { animation:flashScreen 0.5s ease; }
   @keyframes flashScreen {
@@ -177,7 +165,6 @@
     font-size:36px; font-weight:500; font-variant-numeric:tabular-nums;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     line-height:1.15; letter-spacing:-0.5px;
-    transition:color 0.2s, transform 0.15s;
   }
   #screen.bump { animation:screenBump 0.25s cubic-bezier(0.4, 1.6, 0.5, 1); }
   @keyframes screenBump { 0% { transform:scale(1); } 50% { transform:scale(1.04); } 100% { transform:scale(1); } }
@@ -203,8 +190,7 @@
     border:none; border-radius:var(--radius-sm);
     font-size:15.5px; font-weight:600; color:var(--text);
     font-family:inherit; cursor:pointer;
-    transition:transform 0.1s cubic-bezier(0.4, 1.6, 0.5, 1),
-               filter 0.15s, background 0.4s, color 0.4s;
+    transition:transform 0.1s cubic-bezier(0.4, 1.6, 0.5, 1), filter 0.15s;
     padding:0; min-height:0;
     display:flex; align-items:center; justify-content:center;
     box-shadow:inset 0 1px 0 rgba(255,255,255,0.06), 0 1px 2px rgba(0,0,0,0.3);
@@ -237,7 +223,6 @@
     background:var(--bg-panel); border:1px solid var(--border);
     border-radius:var(--radius); padding:14px;
     box-shadow:var(--shadow);
-    transition:background 0.4s, border-color 0.4s;
   }
   .card h3 {
     font-size:13px; text-transform:uppercase; letter-spacing:0.5px;
@@ -248,7 +233,7 @@
     border:1px solid var(--border); border-radius:var(--radius-sm);
     padding:10px 12px; font-size:15px; width:100%;
     font-family:inherit;
-    transition:border-color 0.2s, box-shadow 0.2s, background 0.4s;
+    transition:border-color 0.2s, box-shadow 0.2s;
   }
   .card textarea:focus, .card input:focus, .card select:focus {
     outline:none; border-color:var(--accent);
@@ -260,10 +245,10 @@
     border:none; color:#fff; font-weight:700; font-size:14px;
     padding:12px 16px; border-radius:var(--radius-sm);
     cursor:pointer; font-family:inherit;
-    transition:transform 0.12s, filter 0.15s, box-shadow 0.2s;
+    transition:transform 0.12s, filter 0.15s;
     position:relative; overflow:hidden;
   }
-  .btn:hover { filter:brightness(1.1); box-shadow:0 4px 14px var(--glow-1); }
+  .btn:hover { filter:brightness(1.1); }
   .btn:active { transform:scale(0.97); }
   .btn.success { background:linear-gradient(135deg,var(--success),#22a06b); }
   .btn.danger  { background:linear-gradient(135deg,#ff5b6e,#d63a4d); }
@@ -276,7 +261,7 @@
     font-family:'SF Mono',Consolas,monospace; font-size:14px;
     color:var(--text); min-height:48px;
     white-space:pre-wrap; word-break:break-word; line-height:1.6;
-    transition:border-color 0.3s, background 0.4s;
+    transition:border-color 0.3s;
   }
   .output.ok { border-color:var(--success); animation:okPulse 0.6s ease; }
   @keyframes okPulse {
@@ -317,7 +302,6 @@
     background:linear-gradient(135deg,var(--accent),var(--accent-2));
     border:none; padding:13px; font-size:14px; font-weight:700;
     color:#fff; cursor:pointer; width:100%; font-family:inherit;
-    transition:filter 0.15s;
   }
   .modal-btn.red { background:linear-gradient(135deg,#ff5b6e,#d63a4d); border-top:1px solid var(--border); }
 
@@ -326,6 +310,7 @@
     position:relative; background:var(--bg-panel);
     border:1px solid var(--border); border-radius:var(--radius);
     padding:6px; box-shadow:var(--shadow); overflow:hidden;
+    transition:max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
   }
   #graphCanvas { width:100%; height:auto; display:block; border-radius:8px; touch-action:none; cursor:grab; }
   #graphCanvas.dragging { cursor:grabbing; }
@@ -344,7 +329,6 @@
     flex:1; background:var(--bg-elev); color:var(--text);
     border:1px solid var(--border); border-radius:var(--radius-sm);
     padding:10px 12px; font-size:15px; font-family:inherit;
-    font-variant-numeric:tabular-nums;
   }
   .graph-fn-row .del-btn {
     flex:0 0 auto; background:transparent; color:var(--text-dim);
@@ -356,7 +340,6 @@
     padding:11px 4px; font-size:13.5px; font-weight:600;
     background:var(--btn-num-bg); color:var(--btn-num-text);
     border:none; border-radius:9px; cursor:pointer; font-family:inherit;
-    position:relative; overflow:hidden;
   }
   .graph-keys button:active { transform:scale(0.94); }
   .graph-keys button.op { background:var(--btn-op-bg); color:var(--btn-op-text); }
@@ -372,7 +355,6 @@
   }
   .graph-presets button:hover { background:var(--accent); color:#fff; }
 
-  /* Программисту */
   .bit-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:5px; }
   .bit-grid button {
     padding:12px 4px; font-size:13px; font-weight:600;
@@ -381,7 +363,6 @@
   }
   .bit-grid button:active { transform:scale(0.94); }
 
-  /* Таблицы */
   .value-table {
     width:100%; border-collapse:collapse; font-size:13px;
     font-variant-numeric:tabular-nums;
@@ -392,7 +373,6 @@
   .value-table th { color:var(--text-mute); font-weight:700; font-size:11px; text-transform:uppercase; }
   .value-table tr:last-child td { border-bottom:none; }
 
-  /* Тема picker */
   .theme-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
   .theme-swatch {
     aspect-ratio:1; border-radius:12px; cursor:pointer;
@@ -413,7 +393,6 @@
     border:1px solid var(--border); cursor:pointer; background:var(--bg-elev);
   }
 
-  /* Матрицы */
   .mtx-pair { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
   .mtx-card {
     background:var(--bg-panel); border:1px solid var(--border);
@@ -471,7 +450,6 @@
   .mtx-result td:last-child { border-right:none; }
   .mtx-result .scalar { font-size:20px; color:var(--success); font-weight:700; }
 
-  /* Конвертер */
   .conv-cats { display:flex; gap:5px; overflow-x:auto; padding:2px; scrollbar-width:none; }
   .conv-cats::-webkit-scrollbar { display:none; }
   .conv-cats button {
@@ -514,7 +492,6 @@
   }
   .conv-result .unit { font-size:13px; color:var(--text-dim); font-weight:600; }
 
-  /* Pomodoro */
   .pomo-display {
     text-align:center; font-size:42px; font-weight:700;
     color:var(--accent);
@@ -525,7 +502,6 @@
   @keyframes tick { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
   .pomo-mode { text-align:center; color:var(--text-dim); font-size:13px; margin-bottom:8px; }
 
-  /* Справочник */
   .ref-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; }
   .ref-item {
     background:var(--bg-elev-2); border-radius:var(--radius-sm);
@@ -539,7 +515,6 @@
   .ref-item:hover .name { color:#fff; }
   .ref-item .val { color:var(--text-dim); font-size:11px; }
 
-  /* Статистика */
   .stat-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }
   .stat-item {
     background:var(--bg-elev-2); border-radius:var(--radius-sm);
@@ -941,14 +916,19 @@ function pulseOutput(el) {
 // ═══════════════════════════════════════════════════════
 //  ТЕМА
 // ═══════════════════════════════════════════════════════
-const THEMES = ['blue','emerald','rose','amber','teal','violet','pink','custom'];
-
+function hexA(hex, a) {
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+  const r = parseInt(hex.slice(0,2),16);
+  const g = parseInt(hex.slice(2,4),16);
+  const b = parseInt(hex.slice(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
 function applyTheme() {
   const theme = STORE.get('theme', 'dark');
   if (theme === 'light') document.documentElement.classList.add('light');
   else document.documentElement.classList.remove('light');
 
-  // убираем все классы акцентов
   document.documentElement.classList.remove('theme-emerald','theme-rose','theme-amber','theme-teal','theme-violet','theme-pink');
 
   const accent = STORE.get('accent', 'blue');
@@ -973,14 +953,6 @@ function applyTheme() {
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', theme === 'light' ? '#eef1f7' : '#0e1116');
   if (currentTab === 'graph') setTimeout(drawGraph, 60);
-}
-function hexA(hex, a) {
-  hex = hex.replace('#','');
-  if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
-  const r = parseInt(hex.slice(0,2),16);
-  const g = parseInt(hex.slice(2,4),16);
-  const b = parseInt(hex.slice(4,6),16);
-  return `rgba(${r},${g},${b},${a})`;
 }
 function applyBg() {
   const on = STORE.get('bg', true);
@@ -1017,7 +989,6 @@ const panelsViewport = document.getElementById('panelsViewport');
 const tabsLeft = document.getElementById('tabsLeft');
 const tabsRight = document.getElementById('tabsRight');
 
-// ─── Построение вкладок и панелей ───
 TABS.forEach((tab, i) => {
   const b = document.createElement('button');
   b.dataset.tab = tab.id;
@@ -1032,10 +1003,8 @@ TABS.forEach((tab, i) => {
   panelsTrack.appendChild(panel);
 });
 
-// ─── Панели рендерим позже ───
 function getPanel(id) { return document.querySelector(`.panel[data-panel="${id}"]`); }
 
-// ─── Переключение вкладок ───
 function switchTab(name, scrollOnly) {
   const idx = TABS.findIndex(t => t.id === name);
   if (idx < 0) return;
@@ -1050,13 +1019,12 @@ function switchTab(name, scrollOnly) {
 
   if (!scrollOnly) {
     if (name === 'stats') renderStats();
-    if (name === 'graph') setTimeout(drawGraph, 60);
+    if (name === 'graph') setTimeout(() => { if (!graphCollapsed) drawGraph(); }, 60);
     if (name === 'settings') renderThemePicker();
   }
   updateTabsArrows();
 }
 
-// ─── Стрелки вкладок ───
 function updateTabsArrows() {
   const sl = tabsScroll.scrollLeft;
   const maxScroll = tabsScroll.scrollWidth - tabsScroll.clientWidth;
@@ -1068,40 +1036,29 @@ window.addEventListener('resize', updateTabsArrows);
 tabsLeft.addEventListener('click', () => tabsScroll.scrollBy({ left: -150, behavior: 'smooth' }));
 tabsRight.addEventListener('click', () => tabsScroll.scrollBy({ left: 150, behavior: 'smooth' }));
 
-// ─── Свайп ленты вкладок (горизонтальный) ───
-let tabDragStart = null, tabDragScroll = 0, tabDragMoved = false;
+// Свайп ленты вкладок (мышь)
+let tabDragStart = null, tabDragScroll = 0;
 tabsScroll.addEventListener('pointerdown', (e) => {
   if (e.pointerType === 'touch') return;
   tabDragStart = e.clientX;
   tabDragScroll = tabsScroll.scrollLeft;
-  tabDragMoved = false;
   tabsScroll.classList.add('dragging');
 });
 tabsScroll.addEventListener('pointermove', (e) => {
   if (tabDragStart === null) return;
-  const dx = e.clientX - tabDragStart;
-  if (Math.abs(dx) > 4) tabDragMoved = true;
-  tabsScroll.scrollLeft = tabDragScroll - dx;
+  tabsScroll.scrollLeft = tabDragScroll - (e.clientX - tabDragStart);
 });
-tabsScroll.addEventListener('pointerup', () => {
-  tabDragStart = null;
-  tabsScroll.classList.remove('dragging');
-});
-tabsScroll.addEventListener('pointercancel', () => {
-  tabDragStart = null;
-  tabsScroll.classList.remove('dragging');
-});
-// touch — нативный overflow scroll уже работает
+tabsScroll.addEventListener('pointerup', () => { tabDragStart = null; tabsScroll.classList.remove('dragging'); });
+tabsScroll.addEventListener('pointercancel', () => { tabDragStart = null; tabsScroll.classList.remove('dragging'); });
 
-// ─── Свайп между панелями ───
+// Свайп между панелями (палец)
 let panelTouchStart = null;
-let panelTouchStartY = null;
 let panelDragLocked = false;
 
 panelsViewport.addEventListener('touchstart', (e) => {
+  if (e.target.closest('button, input, textarea, select, canvas, a')) return;
   if (e.touches.length !== 1) return;
   panelTouchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() };
-  panelTouchStartY = e.touches[0].clientY;
   panelDragLocked = false;
   panelsTrack.classList.add('no-transition');
 }, { passive: true });
@@ -1110,7 +1067,6 @@ panelsViewport.addEventListener('touchmove', (e) => {
   if (!panelTouchStart) return;
   const dx = e.touches[0].clientX - panelTouchStart.x;
   const dy = e.touches[0].clientY - panelTouchStart.y;
-  // если начали вертикально — не мешаем скроллу
   if (!panelDragLocked) {
     if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) {
       panelTouchStart = null;
@@ -1141,10 +1097,10 @@ panelsViewport.addEventListener('touchend', (e) => {
   panelDragLocked = false;
 });
 
-// desktop: drag мышью по панели
+// Свайп мышью по панели
 let panelMouseStart = null;
 panelsViewport.addEventListener('mousedown', (e) => {
-  if (e.target.closest('input, textarea, select, button')) return;
+  if (e.target.closest('button, input, textarea, select, canvas, a')) return;
   panelMouseStart = { x: e.clientX, index: currentTabIndex };
   panelsTrack.classList.add('no-transition');
 });
@@ -1166,23 +1122,10 @@ window.addEventListener('mouseup', (e) => {
   panelMouseStart = null;
 });
 
-// ─── Кнопки не должны мешать свайпу ───
-panelsViewport.addEventListener('touchstart', (e) => {
-  if (e.target.closest('button, input, textarea, select, canvas, a')) {
-    panelTouchStart = null;
-  }
-}, { passive: true, capture: true });
-panelsViewport.addEventListener('mousedown', (e) => {
-  if (e.target.closest('button, input, textarea, select, canvas, a')) {
-    panelMouseStart = null;
-  }
-}, { capture: true });
-
 // ═══════════════════════════════════════════════════════
 //  ПАНЕЛИ — HTML
 // ═══════════════════════════════════════════════════════
 
-// ── Калькулятор ──
 getPanel('basic').innerHTML = `
   <div class="topbar">
     <span id="memLabel"></span>
@@ -1200,7 +1143,6 @@ getPanel('basic').innerHTML = `
   <div class="grid" id="grid"></div>
 `;
 
-// ── Уравнения ──
 getPanel('eq').innerHTML = `
   <div class="card">
     <h3>Линейное: ax + b = 0</h3>
@@ -1240,25 +1182,26 @@ getPanel('eq').innerHTML = `
   </div>
 `;
 
-// ── Графики ──
 getPanel('graph').innerHTML = `
-  <div class="graph-wrap">
-    <canvas id="graphCanvas"></canvas>
-    <div class="graph-info">
-      <span id="graphRangeX">x ∈ [−10, 10]</span>
-      <span id="graphRangeY">y ∈ [−10, 10]</span>
-    </div>
-  </div>
-  <div class="card" style="padding:10px;">
+  <div class="card" style="padding:10px;position:sticky;top:0;z-index:5;background:var(--bg-panel);">
     <div style="display:flex;gap:6px;align-items:center;">
       <button class="btn success" id="graphDraw" style="flex:1;">Построить</button>
-      <button class="btn ghost" id="graphAuto" title="Авто" style="flex:0 0 44px;">⛶</button>
+      <button class="btn ghost" id="graphAuto" style="flex:0 0 44px;">⛶</button>
       <button class="btn ghost" id="graphZoomIn" style="flex:0 0 44px;">+</button>
       <button class="btn ghost" id="graphZoomOut" style="flex:0 0 44px;">−</button>
       <button class="btn ghost" id="graphReset" style="flex:0 0 44px;">⟲</button>
       <button class="btn ghost" id="graphShare" style="flex:0 0 44px;">⬇</button>
     </div>
   </div>
+
+  <div class="graph-wrap" id="graphWrap">
+    <canvas id="graphCanvas"></canvas>
+    <div class="graph-info">
+      <span id="graphRangeX">x ∈ [−10, 10]</span>
+      <span id="graphRangeY">y ∈ [−10, 10]</span>
+    </div>
+  </div>
+
   <div class="card" style="padding:0;overflow:hidden;">
     <button id="graphPanelToggle" style="width:100%;background:transparent;border:none;color:var(--text);padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;justify-content:space-between;align-items:center;">
       <span>⚙️ Настройка функций и ввод</span>
@@ -1272,11 +1215,11 @@ getPanel('graph').innerHTML = `
       <div class="graph-presets" id="graphPresets"></div>
       <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;font-weight:700;margin:12px 0 6px;">Ввод</div>
       <div class="graph-keys" id="graphKeys"></div>
+      <button class="btn ghost" id="graphCollapseToggle" style="width:100%;margin-top:12px;">📉 Скрыть график, чтобы было видно ввод</button>
     </div>
   </div>
 `;
 
-// ── Школьнику ──
 getPanel('school').innerHTML = `
   <div class="card">
     <h3>Квадратное неравенство ax² + bx + c &gt; 0</h3>
@@ -1298,7 +1241,6 @@ getPanel('school').innerHTML = `
   </div>
   <div class="card">
     <h3>Арифметическая прогрессия</h3>
-    <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">aₙ = a₁ + (n−1)·d</div>
     <div class="btn-row" style="margin-bottom:8px;">
       <input type="number" id="apA1" value="1" placeholder="a₁" style="flex:1">
       <input type="number" id="apD" value="3" placeholder="d" style="flex:1">
@@ -1309,7 +1251,6 @@ getPanel('school').innerHTML = `
   </div>
   <div class="card">
     <h3>Геометрическая прогрессия</h3>
-    <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">bₙ = b₁ · qⁿ⁻¹</div>
     <div class="btn-row" style="margin-bottom:8px;">
       <input type="number" id="gpB1" value="2" placeholder="b₁" style="flex:1">
       <input type="number" id="gpQ" value="2" placeholder="q" style="flex:1">
@@ -1330,7 +1271,6 @@ getPanel('school').innerHTML = `
   </div>
 `;
 
-// ── Тригонометрия ──
 getPanel('trig').innerHTML = `
   <div class="card">
     <h3>Таблица значений</h3>
@@ -1365,7 +1305,6 @@ getPanel('trig').innerHTML = `
   </div>
 `;
 
-// ── Вероятность ──
 getPanel('prob').innerHTML = `
   <div class="card">
     <h3>Комбинаторика</h3>
@@ -1399,7 +1338,6 @@ getPanel('prob').innerHTML = `
   </div>
 `;
 
-// ── Программисту ──
 getPanel('dev').innerHTML = `
   <div class="card">
     <h3>Системы счисления</h3>
@@ -1442,19 +1380,15 @@ getPanel('dev').innerHTML = `
     <div class="output" id="encOut" style="margin-top:10px;">—</div>
   </div>
   <div class="card">
-    <h3>Логика / логические операции</h3>
-    <div class="btn-row" style="margin-bottom:8px;">
-      <input type="text" id="logExpr" value="A && B || !C" placeholder="A && B || !C">
-    </div>
+    <h3>Логика / таблица истинности</h3>
+    <input type="text" id="logExpr" value="A && B || !C" placeholder="A && B || !C" style="margin-bottom:8px;">
     <button class="btn" id="logBtn">Таблица истинности</button>
     <div class="output" id="logOut" style="margin-top:10px;">—</div>
   </div>
 `;
 
-// ── Матрицы ──
 getPanel('matrix').innerHTML = `<div id="matrixContent"></div>`;
 
-// ── Конвертер ──
 getPanel('convert').innerHTML = `
   <div class="conv-cats" id="convCats"></div>
   <div class="card">
@@ -1479,7 +1413,6 @@ getPanel('convert').innerHTML = `
   </div>
 `;
 
-// ── Производные ──
 getPanel('calc').innerHTML = `
   <div class="card">
     <h3>Производная (символьно)</h3>
@@ -1506,11 +1439,10 @@ getPanel('calc').innerHTML = `
   </div>
 `;
 
-// ── Заметки ──
 getPanel('notes').innerHTML = `
   <div class="card">
     <h3>Черновик</h3>
-    <textarea id="notesArea" placeholder="Пишите формулы, решения, идеи... Сохраняется автоматически."></textarea>
+    <textarea id="notesArea" placeholder="Пишите формулы, решения, идеи..."></textarea>
     <div style="font-size:11px;color:var(--text-mute);margin-top:6px;" id="notesStatus">Сохранено</div>
   </div>
   <div class="card">
@@ -1523,7 +1455,6 @@ getPanel('notes').innerHTML = `
   </div>
 `;
 
-// ── Справочник ──
 getPanel('ref').innerHTML = `
   <div class="card">
     <h3>Физические константы</h3>
@@ -1535,7 +1466,6 @@ getPanel('ref').innerHTML = `
   </div>
 `;
 
-// ── Pomodoro ──
 getPanel('pomo').innerHTML = `
   <div class="card">
     <h3>Таймер Помодоро</h3>
@@ -1554,7 +1484,6 @@ getPanel('pomo').innerHTML = `
   </div>
 `;
 
-// ── Статистика ──
 getPanel('stats').innerHTML = `
   <div class="card">
     <h3>Активность</h3>
@@ -1571,7 +1500,6 @@ getPanel('stats').innerHTML = `
   </div>
 `;
 
-// ── Настройки ──
 getPanel('settings').innerHTML = `
   <div class="card">
     <h3>Тема</h3>
@@ -1591,11 +1519,6 @@ getPanel('settings').innerHTML = `
     <div class="toggle-row"><span>✨ Живой фон</span><div class="switch on" id="bgSwitch"></div></div>
   </div>
   <div class="card">
-    <h3>Приложение</h3>
-    <button class="btn" id="installBtn" style="width:100%">📥 Установить приложение</button>
-    <div style="font-size:12px;color:var(--text-mute);margin-top:8px;" id="installHint">Работает офлайн после установки. Иконка появится на главном экране.</div>
-  </div>
-  <div class="card">
     <h3>Данные</h3>
     <button class="btn danger" id="resetAll" style="width:100%">Сбросить всё</button>
   </div>
@@ -1607,32 +1530,6 @@ getPanel('settings').innerHTML = `
 applyTheme();
 applyBg();
 switchTab('basic');
-
-// ═══════════════════════════════════════════════════════
-//  РЕГИСТРАЦИЯ SERVICE WORKER
-// ═══════════════════════════════════════════════════════
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  });
-}
-
-// Install prompt (PWA)
-let deferredInstallPrompt = null;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-});
-document.getElementById('installBtn').addEventListener('click', async () => {
-  if (deferredInstallPrompt) {
-    deferredInstallPrompt.prompt();
-    const r = await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
-    showToast(r.outcome === 'accepted' ? '✓ Устанавливается' : 'Отменено');
-  } else {
-    showToast('Откройте в браузере → Добавить на главный экран');
-  }
-});
 
 // ═══════════════════════════════════════════════════════
 //  КАЛЬКУЛЯТОР
@@ -1816,44 +1713,40 @@ document.addEventListener('keydown', (e) => {
 // ═══════════════════════════════════════════════════════
 //  УРАВНЕНИЯ
 // ═══════════════════════════════════════════════════════
-function bindEqSolve() {
-  document.getElementById('solveLin').addEventListener('click', () => {
-    const a = parseFloat(document.getElementById('linA').value) || 0;
-    const b = parseFloat(document.getElementById('linB').value) || 0;
-    const out = document.getElementById('linOut');
-    if (a === 0) { out.className = 'output err'; out.textContent = b === 0 ? '∞ решений' : 'Нет решений'; return; }
-    out.className = 'output ok'; out.textContent = `x = ${fmt(-b/a)}`;
-    pulseOutput(out);
-    incrementStat('calc');
-  });
-  document.getElementById('solveSq').addEventListener('click', () => {
-    const a = parseFloat(document.getElementById('sqA').value) || 0;
-    const b = parseFloat(document.getElementById('sqB').value) || 0;
-    const c = parseFloat(document.getElementById('sqC').value) || 0;
-    const out = document.getElementById('sqOut');
-    if (a === 0) { out.className = 'output err'; out.textContent = 'a ≠ 0 обязательно'; return; }
-    const D = b*b - 4*a*c;
-    out.className = 'output ok';
-    if (D > 0) out.textContent = `D = ${fmt(D)}\nx₁ = ${fmt((-b+Math.sqrt(D))/(2*a))}\nx₂ = ${fmt((-b-Math.sqrt(D))/(2*a))}`;
-    else if (D === 0) out.textContent = `D = 0\nx = ${fmt(-b/(2*a))}`;
-    else { const re = -b/(2*a), im = Math.sqrt(-D)/(2*a); out.textContent = `D = ${fmt(D)}\nx₁ = ${fmt(re)} + ${fmt(im)}i\nx₂ = ${fmt(re)} − ${fmt(im)}i`; }
-    pulseOutput(out); incrementStat('calc');
-  });
-  document.getElementById('solveSys').addEventListener('click', () => {
-    const a1 = parseFloat(document.getElementById('sysA1').value) || 0;
-    const b1 = parseFloat(document.getElementById('sysB1').value) || 0;
-    const c1 = parseFloat(document.getElementById('sysC1').value) || 0;
-    const a2 = parseFloat(document.getElementById('sysA2').value) || 0;
-    const b2 = parseFloat(document.getElementById('sysB2').value) || 0;
-    const c2 = parseFloat(document.getElementById('sysC2').value) || 0;
-    const out = document.getElementById('sysOut');
-    const D = a1*b2 - a2*b1;
-    if (Math.abs(D) < 1e-12) { out.className = 'output err'; out.textContent = 'D = 0, нет единственного решения'; return; }
-    out.className = 'output ok'; out.textContent = `x = ${fmt((c1*b2-c2*b1)/D)}\ny = ${fmt((a1*c2-a2*c1)/D)}`;
-    pulseOutput(out); incrementStat('calc');
-  });
-}
-bindEqSolve();
+document.getElementById('solveLin').addEventListener('click', () => {
+  const a = parseFloat(document.getElementById('linA').value) || 0;
+  const b = parseFloat(document.getElementById('linB').value) || 0;
+  const out = document.getElementById('linOut');
+  if (a === 0) { out.className = 'output err'; out.textContent = b === 0 ? '∞ решений' : 'Нет решений'; return; }
+  out.className = 'output ok'; out.textContent = `x = ${fmt(-b/a)}`;
+  pulseOutput(out); incrementStat('calc');
+});
+document.getElementById('solveSq').addEventListener('click', () => {
+  const a = parseFloat(document.getElementById('sqA').value) || 0;
+  const b = parseFloat(document.getElementById('sqB').value) || 0;
+  const c = parseFloat(document.getElementById('sqC').value) || 0;
+  const out = document.getElementById('sqOut');
+  if (a === 0) { out.className = 'output err'; out.textContent = 'a ≠ 0 обязательно'; return; }
+  const D = b*b - 4*a*c;
+  out.className = 'output ok';
+  if (D > 0) out.textContent = `D = ${fmt(D)}\nx₁ = ${fmt((-b+Math.sqrt(D))/(2*a))}\nx₂ = ${fmt((-b-Math.sqrt(D))/(2*a))}`;
+  else if (D === 0) out.textContent = `D = 0\nx = ${fmt(-b/(2*a))}`;
+  else { const re = -b/(2*a), im = Math.sqrt(-D)/(2*a); out.textContent = `D = ${fmt(D)}\nx₁ = ${fmt(re)} + ${fmt(im)}i\nx₂ = ${fmt(re)} − ${fmt(im)}i`; }
+  pulseOutput(out); incrementStat('calc');
+});
+document.getElementById('solveSys').addEventListener('click', () => {
+  const a1 = parseFloat(document.getElementById('sysA1').value) || 0;
+  const b1 = parseFloat(document.getElementById('sysB1').value) || 0;
+  const c1 = parseFloat(document.getElementById('sysC1').value) || 0;
+  const a2 = parseFloat(document.getElementById('sysA2').value) || 0;
+  const b2 = parseFloat(document.getElementById('sysB2').value) || 0;
+  const c2 = parseFloat(document.getElementById('sysC2').value) || 0;
+  const out = document.getElementById('sysOut');
+  const D = a1*b2 - a2*b1;
+  if (Math.abs(D) < 1e-12) { out.className = 'output err'; out.textContent = 'D = 0, нет единственного решения'; return; }
+  out.className = 'output ok'; out.textContent = `x = ${fmt((c1*b2-c2*b1)/D)}\ny = ${fmt((a1*c2-a2*c1)/D)}`;
+  pulseOutput(out); incrementStat('calc');
+});
 
 // ═══════════════════════════════════════════════════════
 //  ШКОЛЬНИКУ
@@ -1867,9 +1760,8 @@ document.getElementById('solveIneq').addEventListener('click', () => {
   if (a === 0) { out.className = 'output err'; out.textContent = 'Это не квадратное неравенство'; return; }
   const D = b*b - 4*a*c;
   let answer = '';
-  if (D < 0) {
-    answer = a > 0 ? 'x ∈ ℝ (все числа)' : 'нет решений';
-  } else if (D === 0) {
+  if (D < 0) { answer = a > 0 ? 'x ∈ ℝ' : 'нет решений'; }
+  else if (D === 0) {
     const x = -b/(2*a);
     if ((a > 0 && (sign==='gt'||sign==='ge')) || (a < 0 && (sign==='lt'||sign==='le'))) {
       if (sign==='gt' || sign==='lt') answer = `x ∈ ℝ \\ {${fmt(x)}}`;
@@ -1903,8 +1795,7 @@ document.getElementById('solveAp').addEventListener('click', () => {
   if (!n || n < 1) { out.className='output err'; out.textContent='n ≥ 1'; return; }
   const an = a1 + (n-1)*d;
   const Sn = n*(a1 + an)/2;
-  out.className = 'output ok';
-  out.textContent = `aₙ = ${fmt(an)}\nSₙ = ${fmt(Sn)}`;
+  out.className = 'output ok'; out.textContent = `aₙ = ${fmt(an)}\nSₙ = ${fmt(Sn)}`;
   pulseOutput(out); incrementStat('calc');
 });
 document.getElementById('solveGp').addEventListener('click', () => {
@@ -1917,8 +1808,7 @@ document.getElementById('solveGp').addEventListener('click', () => {
   let Sn;
   if (q === 1) Sn = b1 * n;
   else Sn = b1 * (Math.pow(q, n) - 1) / (q - 1);
-  out.className = 'output ok';
-  out.textContent = `bₙ = ${fmt(bn)}\nSₙ = ${fmt(Sn)}`;
+  out.className = 'output ok'; out.textContent = `bₙ = ${fmt(bn)}\nSₙ = ${fmt(Sn)}`;
   pulseOutput(out); incrementStat('calc');
 });
 document.getElementById('solveVec').addEventListener('click', () => {
@@ -1926,8 +1816,7 @@ document.getElementById('solveVec').addEventListener('click', () => {
   const y = parseFloat(document.getElementById('vecY').value) || 0;
   const z = parseFloat(document.getElementById('vecZ').value) || 0;
   const out = document.getElementById('vecOut');
-  out.className = 'output ok';
-  out.textContent = `|a| = √(${x}² + ${y}² + ${z}²) = ${fmt(Math.sqrt(x*x + y*y + z*z))}`;
+  out.className = 'output ok'; out.textContent = `|a| = √(${x}² + ${y}² + ${z}²) = ${fmt(Math.sqrt(x*x + y*y + z*z))}`;
   pulseOutput(out); incrementStat('calc');
 });
 
@@ -1948,41 +1837,44 @@ document.getElementById('solveVec').addEventListener('click', () => {
     tbody.appendChild(tr);
   });
 })();
-function bindTrig() {
-  const getDeg = () => parseFloat(document.getElementById('trigDeg').value) || 0;
-  document.getElementById('trigSin').addEventListener('click', () => {
-    const out = document.getElementById('trigOut');
-    out.className = 'output ok'; out.textContent = `sin(${getDeg()}°) = ${fmt(Math.sin(getDeg()*Math.PI/180))}`;
-    pulseOutput(out);
-  });
-  document.getElementById('trigCos').addEventListener('click', () => {
-    const out = document.getElementById('trigOut');
-    out.className = 'output ok'; out.textContent = `cos(${getDeg()}°) = ${fmt(Math.cos(getDeg()*Math.PI/180))}`;
-    pulseOutput(out);
-  });
-  document.getElementById('trigTan').addEventListener('click', () => {
-    const out = document.getElementById('trigOut');
-    out.className = 'output ok'; out.textContent = `tan(${getDeg()}°) = ${fmt(Math.tan(getDeg()*Math.PI/180))}`;
-    pulseOutput(out);
-  });
-  const getVal = () => parseFloat(document.getElementById('trigVal').value) || 0;
-  document.getElementById('trigAsin').addEventListener('click', () => {
-    const out = document.getElementById('trigInvOut');
-    try { out.className = 'output ok'; out.textContent = `asin(${getVal()}) = ${fmt(Math.asin(getVal())*180/Math.PI)}°`; pulseOutput(out); }
-    catch { out.className = 'output err'; out.textContent = 'Не в области определения'; }
-  });
-  document.getElementById('trigAcos').addEventListener('click', () => {
-    const out = document.getElementById('trigInvOut');
-    try { out.className = 'output ok'; out.textContent = `acos(${getVal()}) = ${fmt(Math.acos(getVal())*180/Math.PI)}°`; pulseOutput(out); }
-    catch { out.className = 'output err'; out.textContent = 'Не в области определения'; }
-  });
-  document.getElementById('trigAtan').addEventListener('click', () => {
-    const out = document.getElementById('trigInvOut');
-    out.className = 'output ok'; out.textContent = `atan(${getVal()}) = ${fmt(Math.atan(getVal())*180/Math.PI)}°`;
-    pulseOutput(out);
-  });
-}
-bindTrig();
+document.getElementById('trigSin').addEventListener('click', () => {
+  const deg = parseFloat(document.getElementById('trigDeg').value) || 0;
+  const out = document.getElementById('trigOut');
+  out.className = 'output ok'; out.textContent = `sin(${deg}°) = ${fmt(Math.sin(deg*Math.PI/180))}`;
+  pulseOutput(out);
+});
+document.getElementById('trigCos').addEventListener('click', () => {
+  const deg = parseFloat(document.getElementById('trigDeg').value) || 0;
+  const out = document.getElementById('trigOut');
+  out.className = 'output ok'; out.textContent = `cos(${deg}°) = ${fmt(Math.cos(deg*Math.PI/180))}`;
+  pulseOutput(out);
+});
+document.getElementById('trigTan').addEventListener('click', () => {
+  const deg = parseFloat(document.getElementById('trigDeg').value) || 0;
+  const out = document.getElementById('trigOut');
+  out.className = 'output ok'; out.textContent = `tan(${deg}°) = ${fmt(Math.tan(deg*Math.PI/180))}`;
+  pulseOutput(out);
+});
+document.getElementById('trigAsin').addEventListener('click', () => {
+  const v = parseFloat(document.getElementById('trigVal').value) || 0;
+  const out = document.getElementById('trigInvOut');
+  if (v < -1 || v > 1) { out.className = 'output err'; out.textContent = 'Не в области определения'; return; }
+  out.className = 'output ok'; out.textContent = `asin(${v}) = ${fmt(Math.asin(v)*180/Math.PI)}°`;
+  pulseOutput(out);
+});
+document.getElementById('trigAcos').addEventListener('click', () => {
+  const v = parseFloat(document.getElementById('trigVal').value) || 0;
+  const out = document.getElementById('trigInvOut');
+  if (v < -1 || v > 1) { out.className = 'output err'; out.textContent = 'Не в области определения'; return; }
+  out.className = 'output ok'; out.textContent = `acos(${v}) = ${fmt(Math.acos(v)*180/Math.PI)}°`;
+  pulseOutput(out);
+});
+document.getElementById('trigAtan').addEventListener('click', () => {
+  const v = parseFloat(document.getElementById('trigVal').value) || 0;
+  const out = document.getElementById('trigInvOut');
+  out.className = 'output ok'; out.textContent = `atan(${v}) = ${fmt(Math.atan(v)*180/Math.PI)}°`;
+  pulseOutput(out);
+});
 
 // ═══════════════════════════════════════════════════════
 //  ВЕРОЯТНОСТЬ
@@ -2044,18 +1936,13 @@ document.getElementById('statBtn').addEventListener('click', () => {
     const median = n % 2 ? sorted[(n-1)/2] : (sorted[n/2-1] + sorted[n/2]) / 2;
     const variance = arr.reduce((s,x)=>s+(x-mean)**2, 0) / n;
     const sd = Math.sqrt(variance);
-    const mode = (() => {
-      const freq = {};
-      arr.forEach(x => freq[x] = (freq[x] || 0) + 1);
-      let maxF = 0, mode = [];
-      for (const [k, v] of Object.entries(freq)) {
-        if (v > maxF) { maxF = v; mode = [k]; }
-        else if (v === maxF) mode.push(k);
-      }
-      return mode.join(', ');
-    })();
+    const freq = {}; arr.forEach(x => freq[x] = (freq[x] || 0) + 1);
+    let maxF = 0, mode = [];
+    for (const [k, v] of Object.entries(freq)) {
+      if (v > maxF) { maxF = v; mode = [k]; } else if (v === maxF) mode.push(k);
+    }
     out.className = 'output ok';
-    out.textContent = `n = ${n}\nСреднее = ${fmt(mean)}\nМедиана = ${fmt(median)}\nМода = ${mode}\nДисперсия = ${fmt(variance)}\nσ = ${fmt(sd)}\nМин/Макс = ${fmt(sorted[0])} / ${fmt(sorted[n-1])}`;
+    out.textContent = `n = ${n}\nСреднее = ${fmt(mean)}\nМедиана = ${fmt(median)}\nМода = ${mode.join(', ')}\nДисперсия = ${fmt(variance)}\nσ = ${fmt(sd)}\nМин/Макс = ${fmt(sorted[0])} / ${fmt(sorted[n-1])}`;
     pulseOutput(out); incrementStat('calc');
   } catch (e) { out.className='output err'; out.textContent = e.message; }
 });
@@ -2071,36 +1958,28 @@ function devParseNum() {
   return parseInt(s, 10);
 }
 document.getElementById('devBin').addEventListener('click', () => {
-  const n = devParseNum();
-  const out = document.getElementById('devOut');
+  const n = devParseNum(); const out = document.getElementById('devOut');
   out.className='output ok'; out.textContent = `bin: 0b${n.toString(2)}\noct: 0o${n.toString(8)}\ndec: ${n}\nhex: 0x${n.toString(16).toUpperCase()}`;
   pulseOutput(out);
 });
 document.getElementById('devOct').addEventListener('click', () => {
-  const n = devParseNum();
-  const out = document.getElementById('devOut');
-  out.className='output ok'; out.textContent = `oct: 0o${n.toString(8)}`;
-  pulseOutput(out);
+  const n = devParseNum(); const out = document.getElementById('devOut');
+  out.className='output ok'; out.textContent = `oct: 0o${n.toString(8)}`; pulseOutput(out);
 });
 document.getElementById('devDec').addEventListener('click', () => {
-  const n = devParseNum();
-  const out = document.getElementById('devOut');
-  out.className='output ok'; out.textContent = `dec: ${n}`;
-  pulseOutput(out);
+  const n = devParseNum(); const out = document.getElementById('devOut');
+  out.className='output ok'; out.textContent = `dec: ${n}`; pulseOutput(out);
 });
 document.getElementById('devHex').addEventListener('click', () => {
-  const n = devParseNum();
-  const out = document.getElementById('devOut');
-  out.className='output ok'; out.textContent = `hex: 0x${n.toString(16).toUpperCase()}`;
-  pulseOutput(out);
+  const n = devParseNum(); const out = document.getElementById('devOut');
+  out.className='output ok'; out.textContent = `hex: 0x${n.toString(16).toUpperCase()}`; pulseOutput(out);
 });
 document.querySelectorAll('.bit-grid button').forEach(b => {
   b.addEventListener('click', () => {
     const a = parseInt(document.getElementById('bitA').value) || 0;
     const b_ = parseInt(document.getElementById('bitB').value) || 0;
     const out = document.getElementById('bitOut');
-    let result;
-    const op = b.dataset.op;
+    let result; const op = b.dataset.op;
     if (op === 'and') result = a & b_;
     else if (op === 'or') result = a | b_;
     else if (op === 'xor') result = a ^ b_;
@@ -2111,9 +1990,7 @@ document.querySelectorAll('.bit-grid button').forEach(b => {
     else if (op === 'popcnt') {
       let n = a >>> 0, c = 0;
       while (n) { c += n & 1; n >>>= 1; }
-      out.className='output ok';
-      out.textContent = `popcount(${a}) = ${c}`;
-      pulseOutput(out); return;
+      out.className='output ok'; out.textContent = `popcount(${a}) = ${c}`; pulseOutput(out); return;
     }
     out.className='output ok';
     out.textContent = `${a} ${op} ${b_} = ${result}\nbin: ${result.toString(2)}\nhex: 0x${(result >>> 0).toString(16).toUpperCase()}`;
@@ -2125,21 +2002,16 @@ document.getElementById('encB64').addEventListener('click', () => {
   const out = document.getElementById('encOut');
   try {
     out.className='output ok';
-    out.textContent = `btoa: ${btoa(unescape(encodeURIComponent(t)))}\natob: ${decodeURIComponent(escape(atob(btoa(unescape(encodeURIComponent(t))))))}`;
+    out.textContent = `btoa: ${btoa(unescape(encodeURIComponent(t)))}`;
     pulseOutput(out);
   } catch { out.className='output err'; out.textContent='Ошибка кодирования'; }
 });
 document.getElementById('encHex').addEventListener('click', () => {
   const t = document.getElementById('encText').value;
   const out = document.getElementById('encOut');
-  let hex = '', bytes = '';
-  for (let i = 0; i < t.length; i++) {
-    const code = t.charCodeAt(i);
-    hex += code.toString(16).padStart(2, '0') + ' ';
-    bytes += String.fromCharCode(code);
-  }
-  out.className='output ok';
-  out.textContent = `hex: ${hex.trim().toUpperCase()}\ndec: ${Array.from(t).map(c => c.charCodeAt(0)).join(' ')}`;
+  let hex = '';
+  for (let i = 0; i < t.length; i++) hex += t.charCodeAt(i).toString(16).padStart(2, '0') + ' ';
+  out.className='output ok'; out.textContent = `hex: ${hex.trim().toUpperCase()}`;
   pulseOutput(out);
 });
 document.getElementById('encAscii').addEventListener('click', () => {
@@ -2152,15 +2024,13 @@ document.getElementById('encAscii').addEventListener('click', () => {
 document.getElementById('encCrc').addEventListener('click', () => {
   const t = document.getElementById('encText').value;
   const out = document.getElementById('encOut');
-  // CRC32
   let crc = 0xFFFFFFFF;
   for (let i = 0; i < t.length; i++) {
     crc ^= t.charCodeAt(i);
     for (let j = 0; j < 8; j++) crc = (crc >>> 1) ^ (crc & 1 ? 0xEDB88320 : 0);
   }
   crc = (crc ^ 0xFFFFFFFF) >>> 0;
-  out.className='output ok';
-  out.textContent = `CRC32("${t}") = 0x${crc.toString(16).toUpperCase().padStart(8, '0')}`;
+  out.className='output ok'; out.textContent = `CRC32("${t}") = 0x${crc.toString(16).toUpperCase().padStart(8, '0')}`;
   pulseOutput(out);
 });
 document.getElementById('logBtn').addEventListener('click', () => {
@@ -2169,7 +2039,6 @@ document.getElementById('logBtn').addEventListener('click', () => {
   const vars = [...new Set(expr.match(/[A-Z]/g) || [])].sort();
   if (!vars.length) { out.className='output err'; out.textContent='Используйте переменные A, B, C...'; return; }
   if (vars.length > 4) { out.className='output err'; out.textContent='Максимум 4 переменные'; return; }
-  const jsExpr = expr.replace(/&&/g, '&&').replace(/\|\|/g, '||').replace(/!/g, '!').replace(/([A-Z])/g, 'env.$1');
   const rows = [];
   const total = 1 << vars.length;
   rows.push(`<tr><th>${vars.join('</th><th>')}</th><th>Результат</th></tr>`);
@@ -2177,8 +2046,6 @@ document.getElementById('logBtn').addEventListener('click', () => {
     const env = {};
     vars.forEach((v, j) => env[v] = !!(i & (1 << (vars.length - 1 - j))));
     let result;
-    try { result = eval(jsExpr.replace(/env\./g, '')); } catch { result = '?'; }
-    // безопасный eval через Function
     try {
       const fn = new Function(...vars, `return (${expr.replace(/&&/g,'&&').replace(/\|\|/g,'||').replace(/!/g,'!')});`);
       result = fn(...vars.map(v => env[v]));
@@ -2203,11 +2070,14 @@ let graphFns = STORE.get('graphFns', [{ expr: 'x^2 - 3x + 2', color: PALETTE[0],
 let graphRange = 10;
 let graphCenter = { x: 0, y: 0 };
 let activeFnIndex = 0;
+let graphCollapsed = STORE.get('graphCollapsed', false);
 
 const graphPanelToggle = document.getElementById('graphPanelToggle');
 const graphPanelBody = document.getElementById('graphPanelBody');
 const graphPanelArrow = document.getElementById('graphPanelArrow');
-let graphPanelOpen = STORE.get('graphPanelOpen', false);
+const graphCollapseToggle = document.getElementById('graphCollapseToggle');
+const graphWrap = document.getElementById('graphWrap');
+let graphPanelOpen = STORE.get('graphPanelOpen', true);
 function applyGraphPanel() {
   graphPanelBody.style.display = graphPanelOpen ? 'block' : 'none';
   graphPanelArrow.style.transform = graphPanelOpen ? 'rotate(180deg)' : 'rotate(0)';
@@ -2218,6 +2088,46 @@ graphPanelToggle.addEventListener('click', () => {
   STORE.set('graphPanelOpen', graphPanelOpen);
   applyGraphPanel();
   haptic();
+  if (graphPanelOpen) {
+    setTimeout(() => {
+      graphPanelBody.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+});
+
+function applyGraphCollapsed() {
+  if (!graphWrap) return;
+  if (graphCollapsed) {
+    graphWrap.style.maxHeight = '0px';
+    graphWrap.style.padding = '0';
+    graphWrap.style.opacity = '0';
+    graphCollapseToggle.textContent = '📈 Показать график';
+  } else {
+    graphWrap.style.maxHeight = '1000px';
+    graphWrap.style.padding = '6px';
+    graphWrap.style.opacity = '1';
+    graphCollapseToggle.textContent = '📉 Скрыть график, чтобы было видно ввод';
+    setTimeout(drawGraph, 350);
+  }
+}
+graphCollapseToggle.addEventListener('click', () => {
+  graphCollapsed = !graphCollapsed;
+  STORE.set('graphCollapsed', graphCollapsed);
+  applyGraphCollapsed();
+  haptic();
+});
+applyGraphCollapsed();
+
+// Автоскрытие при фокусе на поле ввода
+document.addEventListener('focusin', (e) => {
+  if (currentTab !== 'graph') return;
+  if (e.target.matches('#graphFns input')) {
+    if (!graphCollapsed) {
+      graphCollapsed = true;
+      STORE.set('graphCollapsed', true);
+      applyGraphCollapsed();
+    }
+  }
 });
 
 function renderGraphFns() {
@@ -2233,7 +2143,12 @@ function renderGraphFns() {
     graphFnsEl.appendChild(row);
   });
   graphFnsEl.querySelectorAll('input').forEach(inp => {
-    inp.addEventListener('focus', () => { activeFnIndex = +inp.dataset.idx; });
+    inp.addEventListener('focus', () => {
+      activeFnIndex = +inp.dataset.idx;
+      setTimeout(() => {
+        inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    });
     inp.addEventListener('input', () => {
       graphFns[+inp.dataset.idx].expr = inp.value;
       STORE.set('graphFns', graphFns);
@@ -2365,6 +2280,7 @@ function scheduleDraw() { clearTimeout(drawTimer); drawTimer = setTimeout(drawGr
 function drawGraph() {
   if (!graphCanvas) return;
   const wrap = graphCanvas.parentElement;
+  if (wrap.style.maxHeight === '0px') return;
   const w = wrap.clientWidth - 12;
   const h = Math.max(240, Math.min(360, w * 0.7));
   const dpr = window.devicePixelRatio || 1;
@@ -2447,7 +2363,10 @@ document.getElementById('graphAddFn').addEventListener('click', () => {
   STORE.set('graphFns', graphFns);
   activeFnIndex = graphFns.length - 1;
   renderGraphFns();
-  setTimeout(() => { const inp = graphFnsEl.querySelector(`input[data-idx="${activeFnIndex}"]`); if (inp) inp.focus(); }, 50);
+  setTimeout(() => {
+    const inp = graphFnsEl.querySelector(`input[data-idx="${activeFnIndex}"]`);
+    if (inp) { inp.focus(); inp.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  }, 50);
 });
 document.getElementById('graphDraw').addEventListener('click', drawGraph);
 document.getElementById('graphZoomIn').addEventListener('click', () => { graphRange = Math.max(0.5, graphRange/1.5); drawGraph(); });
@@ -2589,8 +2508,7 @@ document.getElementById('derivEval').addEventListener('click', () => {
   const h = 1e-6;
   try {
     const f1 = safeEvalX(expr, x0+h), f2 = safeEvalX(expr, x0-h);
-    out.className = 'output ok';
-    out.textContent = `f'(${x0}) ≈ ${fmt((f1-f2)/(2*h))}`;
+    out.className = 'output ok'; out.textContent = `f'(${x0}) ≈ ${fmt((f1-f2)/(2*h))}`;
     pulseOutput(out);
   } catch (e) { out.className = 'output err'; out.textContent = 'Ошибка: ' + e.message; }
 });
@@ -2603,8 +2521,7 @@ document.getElementById('intBtn').addEventListener('click', () => {
   try {
     let sum = 0;
     for (let i = 0; i < n; i++) sum += safeEvalX(expr, a + (i+0.5)*dx);
-    out.className = 'output ok';
-    out.textContent = `∫[${a}..${b}] f(x)dx ≈ ${fmt(sum*dx)}`;
+    out.className = 'output ok'; out.textContent = `∫[${a}..${b}] f(x)dx ≈ ${fmt(sum*dx)}`;
     pulseOutput(out); incrementStat('calc');
   } catch (e) { out.className = 'output err'; out.textContent = 'Ошибка: ' + e.message; }
 });
@@ -2789,8 +2706,7 @@ function convertNow() {
   const v = parseFloat(document.getElementById('convInput').value) || 0;
   const from = document.getElementById('convFrom').value, to = document.getElementById('convTo').value;
   const r = CONV_CATEGORIES[convCategory].convert(v, from, to);
-  const resEl = document.getElementById('convResult');
-  resEl.textContent = fmt(r);
+  document.getElementById('convResult').textContent = fmt(r);
   document.getElementById('convResultUnit').textContent = to;
   pulseOutput(document.querySelector('.conv-result'));
 }
@@ -3000,7 +2916,6 @@ document.getElementById('applyCustom').addEventListener('click', () => {
   renderThemePicker();
   showToast('✓ Своя тема применена');
 });
-setupSwitch('darkSwitch', 'darkModeToggle', false, () => {});
 (function initDarkSwitch() {
   const el = document.getElementById('darkSwitch');
   const theme = STORE.get('theme', 'dark');
