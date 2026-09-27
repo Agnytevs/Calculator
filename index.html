@@ -33,7 +33,6 @@
     --btn-ctrl-bg:#e2e7ef; --btn-ctrl-text:#5b6473;
     --shadow:0 4px 20px rgba(20,30,60,0.08);
   }
-  /* Акцентные цвета (из выбранной темы) */
   html.theme-emerald { --accent:#3ecf8e; --accent-2:#22a06b; --glow-1:rgba(62,207,142,0.10); --glow-2:rgba(34,160,107,0.10); }
   html.theme-rose    { --accent:#ff5b6e; --accent-2:#d63a4d; --glow-1:rgba(255,91,110,0.10); --glow-2:rgba(214,58,77,0.10); }
   html.theme-amber   { --accent:#ffb454; --accent-2:#f39c12; --glow-1:rgba(255,180,84,0.10); --glow-2:rgba(243,156,18,0.10); }
@@ -74,7 +73,6 @@
     gap:6px; max-width:640px; margin:0 auto;
   }
 
-  /* ── Вкладки со свайпом ── */
   .tabs-wrap {
     display:flex; align-items:center; gap:2px;
     background:var(--bg-elev); border:1px solid var(--border);
@@ -116,7 +114,6 @@
     0% { transform:scale(0.94); } 60% { transform:scale(1.04); } 100% { transform:scale(1); }
   }
 
-  /* ── Панели со свайпом ── */
   .panels-viewport {
     flex:1; overflow:hidden; position:relative; min-height:0;
   }
@@ -321,7 +318,6 @@
   }
   .modal-btn.red { background:linear-gradient(135deg,#ff5b6e,#d63a4d); border-top:1px solid var(--border); }
 
-  /* Графики */
   .graph-wrap {
     position:relative; background:var(--bg-panel);
     border:1px solid var(--border); border-radius:var(--radius);
@@ -372,7 +368,6 @@
   }
   .graph-presets button:hover { background:var(--accent); color:#fff; }
 
-  /* Программисту */
   .bit-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:5px; }
   .bit-grid button {
     padding:12px 4px; font-size:13px; font-weight:600;
@@ -381,7 +376,6 @@
   }
   .bit-grid button:active { transform:scale(0.94); }
 
-  /* Таблицы */
   .value-table {
     width:100%; border-collapse:collapse; font-size:13px;
     font-variant-numeric:tabular-nums;
@@ -392,7 +386,6 @@
   .value-table th { color:var(--text-mute); font-weight:700; font-size:11px; text-transform:uppercase; }
   .value-table tr:last-child td { border-bottom:none; }
 
-  /* Тема picker */
   .theme-grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
   .theme-swatch {
     aspect-ratio:1; border-radius:12px; cursor:pointer;
@@ -413,34 +406,37 @@
     border:1px solid var(--border); cursor:pointer; background:var(--bg-elev);
   }
 
-  /* Матрицы */
   .mtx-pair { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
   .mtx-card {
     background:var(--bg-panel); border:1px solid var(--border);
     border-radius:var(--radius); padding:10px;
     display:flex; flex-direction:column; gap:8px;
+    min-width:0;
   }
-  .mtx-card-head { display:flex; justify-content:space-between; align-items:center; font-size:12px; }
+  .mtx-card-head { display:flex; justify-content:space-between; align-items:center; font-size:12px; gap:6px; }
   .mtx-card-head .name {
     color:var(--accent); background:var(--glow-1);
     padding:2px 10px; border-radius:20px; font-weight:700;
+    flex:0 0 auto;
   }
-  .mtx-card-head .size { color:var(--text-mute); font-size:11px; }
+  .mtx-card-head .size { color:var(--text-mute); font-size:11px; flex:0 0 auto; }
   .mtx-preview {
     background:var(--bg-elev); border-radius:8px; padding:8px;
     min-height:52px; font-family:'SF Mono',Consolas,monospace;
     font-size:12px;
     display:flex; align-items:center; justify-content:center;
-    overflow:hidden;
+    overflow:auto; max-width:100%;
   }
   .mtx-preview .none { color:var(--text-mute); font-size:11px; }
   .mtx-preview table { border-collapse:collapse; }
-  .mtx-preview td { padding:2px 5px; text-align:right; }
+  .mtx-preview td { padding:2px 5px; text-align:right; white-space:nowrap; }
+  .mtx-card-actions { display:flex; gap:5px; }
   .mtx-edit {
-    padding:8px; font-size:12px; font-weight:600; font-family:inherit;
+    flex:1; padding:8px; font-size:12px; font-weight:600; font-family:inherit;
     background:var(--bg-elev-2); color:var(--text);
     border:none; border-radius:8px; cursor:pointer;
   }
+  .mtx-edit.danger { background:rgba(255,91,110,0.15); color:var(--danger); flex:0 0 auto; padding:8px 12px; }
   .mtx-ops {
     background:var(--bg-panel); border:1px solid var(--border);
     border-radius:var(--radius); padding:10px;
@@ -454,8 +450,10 @@
     padding:10px 4px; font-size:12px; font-weight:600;
     background:var(--bg-elev-2); color:var(--text);
     border:none; border-radius:8px; cursor:pointer; font-family:inherit;
+    min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .mtx-ops-row button.success { background:linear-gradient(135deg,var(--success),#22a06b); color:#fff; }
+  .mtx-ops-row button.danger  { background:linear-gradient(135deg,#ff5b6e,#d63a4d); color:#fff; }
   .mtx-result {
     background:var(--bg-panel); border:1px solid var(--success);
     border-radius:var(--radius); padding:12px 16px;
@@ -471,7 +469,6 @@
   .mtx-result td:last-child { border-right:none; }
   .mtx-result .scalar { font-size:20px; color:var(--success); font-weight:700; }
 
-  /* Конвертер */
   .conv-cats { display:flex; gap:5px; overflow-x:auto; padding:2px; scrollbar-width:none; }
   .conv-cats::-webkit-scrollbar { display:none; }
   .conv-cats button {
@@ -488,13 +485,32 @@
     font-size:11px; text-transform:uppercase; letter-spacing:0.5px;
     color:var(--text-mute); font-weight:700; margin-bottom:4px; display:block;
   }
-  .conv-input-row { display:flex; gap:6px; }
-  .conv-input-row input {
-    flex:1; background:var(--bg-elev); color:var(--text);
-    border:1px solid var(--border); border-radius:var(--radius-sm);
+  .conv-input-row { display:flex; gap:6px; align-items:stretch; }
+  .conv-input-row input,
+  .conv-input-row input[type="number"],
+  .conv-input-row input[type="text"] {
+    flex:1 1 auto; min-width:0;
+    background:var(--bg-elev) !important;
+    color:var(--text) !important;
+    -webkit-text-fill-color:var(--text);
+    caret-color:var(--accent);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
     padding:11px 14px; font-size:19px; font-weight:600;
     font-family:inherit; font-variant-numeric:tabular-nums;
+    text-align:left;
+    appearance:none; -moz-appearance:textfield; -webkit-appearance:none;
+    line-height:1.2; height:auto; outline:none;
   }
+  .conv-input-row input[type="number"]::-webkit-outer-spin-button,
+  .conv-input-row input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance:none; margin:0;
+  }
+  .conv-input-row input:focus {
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--glow-1);
+  }
+  .conv-input-row input::placeholder { color:var(--text-mute); opacity:1; }
   .conv-select {
     background:var(--bg-elev-2); color:var(--text);
     border:1px solid var(--border); border-radius:var(--radius-sm);
@@ -514,7 +530,6 @@
   }
   .conv-result .unit { font-size:13px; color:var(--text-dim); font-weight:600; }
 
-  /* Pomodoro */
   .pomo-display {
     text-align:center; font-size:42px; font-weight:700;
     color:var(--accent);
@@ -525,7 +540,6 @@
   @keyframes tick { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
   .pomo-mode { text-align:center; color:var(--text-dim); font-size:13px; margin-bottom:8px; }
 
-  /* Справочник */
   .ref-grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; }
   .ref-item {
     background:var(--bg-elev-2); border-radius:var(--radius-sm);
@@ -539,7 +553,6 @@
   .ref-item:hover .name { color:#fff; }
   .ref-item .val { color:var(--text-dim); font-size:11px; }
 
-  /* Статистика */
   .stat-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:6px; }
   .stat-item {
     background:var(--bg-elev-2); border-radius:var(--radius-sm);
@@ -635,11 +648,24 @@
   <div class="modal-box">
     <h3 id="matrixModalTitle">Создать матрицу</h3>
     <div class="modal-content">
-      <label style="display:block;color:var(--text-mute);font-size:11px;text-transform:uppercase;font-weight:700;margin:8px 0 4px;">Строк:</label>
-      <input type="number" id="mRows" value="2" min="1" max="6">
-      <label style="display:block;color:var(--text-mute);font-size:11px;text-transform:uppercase;font-weight:700;margin:8px 0 4px;">Столбцов:</label>
-      <input type="number" id="mCols" value="2" min="1" max="6">
-      <div id="matrixInputs" style="display:grid;gap:6px;margin-top:12px;"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div>
+          <label style="display:block;color:var(--text-mute);font-size:11px;text-transform:uppercase;font-weight:700;margin:0 0 4px;">Строк</label>
+          <input type="number" id="mRows" value="2" min="1" max="6" inputmode="numeric">
+        </div>
+        <div>
+          <label style="display:block;color:var(--text-mute);font-size:11px;text-transform:uppercase;font-weight:700;margin:0 0 4px;">Столбцов</label>
+          <input type="number" id="mCols" value="2" min="1" max="6" inputmode="numeric">
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;margin-top:10px;">
+        <button type="button" class="btn ghost" data-mtx-size="2" style="flex:1;padding:8px;font-size:12px;">2×2</button>
+        <button type="button" class="btn ghost" data-mtx-size="3" style="flex:1;padding:8px;font-size:12px;">3×3</button>
+        <button type="button" class="btn ghost" data-mtx-size="4" style="flex:1;padding:8px;font-size:12px;">4×4</button>
+        <button type="button" class="btn ghost" data-mtx-size="5" style="flex:1;padding:8px;font-size:12px;">5×5</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-mute);text-transform:uppercase;font-weight:700;margin:14px 0 6px;">Элементы</div>
+      <div id="matrixInputs" style="display:grid;gap:6px;"></div>
     </div>
     <button class="modal-btn" id="saveMatrix">Сохранить</button>
     <button class="modal-btn red" id="cancelMatrix">Отмена</button>
@@ -941,14 +967,11 @@ function pulseOutput(el) {
 // ═══════════════════════════════════════════════════════
 //  ТЕМА
 // ═══════════════════════════════════════════════════════
-const THEMES = ['blue','emerald','rose','amber','teal','violet','pink','custom'];
-
 function applyTheme() {
   const theme = STORE.get('theme', 'dark');
   if (theme === 'light') document.documentElement.classList.add('light');
   else document.documentElement.classList.remove('light');
 
-  // убираем все классы акцентов
   document.documentElement.classList.remove('theme-emerald','theme-rose','theme-amber','theme-teal','theme-violet','theme-pink');
 
   const accent = STORE.get('accent', 'blue');
@@ -1017,7 +1040,6 @@ const panelsViewport = document.getElementById('panelsViewport');
 const tabsLeft = document.getElementById('tabsLeft');
 const tabsRight = document.getElementById('tabsRight');
 
-// ─── Построение вкладок и панелей ───
 TABS.forEach((tab, i) => {
   const b = document.createElement('button');
   b.dataset.tab = tab.id;
@@ -1032,10 +1054,8 @@ TABS.forEach((tab, i) => {
   panelsTrack.appendChild(panel);
 });
 
-// ─── Панели рендерим позже ───
 function getPanel(id) { return document.querySelector(`.panel[data-panel="${id}"]`); }
 
-// ─── Переключение вкладок ───
 function switchTab(name, scrollOnly) {
   const idx = TABS.findIndex(t => t.id === name);
   if (idx < 0) return;
@@ -1056,7 +1076,6 @@ function switchTab(name, scrollOnly) {
   updateTabsArrows();
 }
 
-// ─── Стрелки вкладок ───
 function updateTabsArrows() {
   const sl = tabsScroll.scrollLeft;
   const maxScroll = tabsScroll.scrollWidth - tabsScroll.clientWidth;
@@ -1068,7 +1087,6 @@ window.addEventListener('resize', updateTabsArrows);
 tabsLeft.addEventListener('click', () => tabsScroll.scrollBy({ left: -150, behavior: 'smooth' }));
 tabsRight.addEventListener('click', () => tabsScroll.scrollBy({ left: 150, behavior: 'smooth' }));
 
-// ─── Свайп ленты вкладок (горизонтальный) ───
 let tabDragStart = null, tabDragScroll = 0, tabDragMoved = false;
 tabsScroll.addEventListener('pointerdown', (e) => {
   if (e.pointerType === 'touch') return;
@@ -1091,9 +1109,7 @@ tabsScroll.addEventListener('pointercancel', () => {
   tabDragStart = null;
   tabsScroll.classList.remove('dragging');
 });
-// touch — нативный overflow scroll уже работает
 
-// ─── Свайп между панелями ───
 let panelTouchStart = null;
 let panelTouchStartY = null;
 let panelDragLocked = false;
@@ -1110,7 +1126,6 @@ panelsViewport.addEventListener('touchmove', (e) => {
   if (!panelTouchStart) return;
   const dx = e.touches[0].clientX - panelTouchStart.x;
   const dy = e.touches[0].clientY - panelTouchStart.y;
-  // если начали вертикально — не мешаем скроллу
   if (!panelDragLocked) {
     if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 8) {
       panelTouchStart = null;
@@ -1141,7 +1156,6 @@ panelsViewport.addEventListener('touchend', (e) => {
   panelDragLocked = false;
 });
 
-// desktop: drag мышью по панели
 let panelMouseStart = null;
 panelsViewport.addEventListener('mousedown', (e) => {
   if (e.target.closest('input, textarea, select, button')) return;
@@ -1166,7 +1180,6 @@ window.addEventListener('mouseup', (e) => {
   panelMouseStart = null;
 });
 
-// ─── Кнопки не должны мешать свайпу ───
 panelsViewport.addEventListener('touchstart', (e) => {
   if (e.target.closest('button, input, textarea, select, canvas, a')) {
     panelTouchStart = null;
@@ -1182,7 +1195,6 @@ panelsViewport.addEventListener('mousedown', (e) => {
 //  ПАНЕЛИ — HTML
 // ═══════════════════════════════════════════════════════
 
-// ── Калькулятор ──
 getPanel('basic').innerHTML = `
   <div class="topbar">
     <span id="memLabel"></span>
@@ -1200,7 +1212,6 @@ getPanel('basic').innerHTML = `
   <div class="grid" id="grid"></div>
 `;
 
-// ── Уравнения ──
 getPanel('eq').innerHTML = `
   <div class="card">
     <h3>Линейное: ax + b = 0</h3>
@@ -1240,7 +1251,6 @@ getPanel('eq').innerHTML = `
   </div>
 `;
 
-// ── Графики ──
 getPanel('graph').innerHTML = `
   <div class="graph-wrap">
     <canvas id="graphCanvas"></canvas>
@@ -1276,7 +1286,6 @@ getPanel('graph').innerHTML = `
   </div>
 `;
 
-// ── Школьнику ──
 getPanel('school').innerHTML = `
   <div class="card">
     <h3>Квадратное неравенство ax² + bx + c &gt; 0</h3>
@@ -1330,7 +1339,6 @@ getPanel('school').innerHTML = `
   </div>
 `;
 
-// ── Тригонометрия ──
 getPanel('trig').innerHTML = `
   <div class="card">
     <h3>Таблица значений</h3>
@@ -1365,7 +1373,6 @@ getPanel('trig').innerHTML = `
   </div>
 `;
 
-// ── Вероятность ──
 getPanel('prob').innerHTML = `
   <div class="card">
     <h3>Комбинаторика</h3>
@@ -1399,7 +1406,6 @@ getPanel('prob').innerHTML = `
   </div>
 `;
 
-// ── Программисту ──
 getPanel('dev').innerHTML = `
   <div class="card">
     <h3>Системы счисления</h3>
@@ -1451,21 +1457,23 @@ getPanel('dev').innerHTML = `
   </div>
 `;
 
-// ── Матрицы ──
 getPanel('matrix').innerHTML = `<div id="matrixContent"></div>`;
 
-// ── Конвертер ──
 getPanel('convert').innerHTML = `
   <div class="conv-cats" id="convCats"></div>
   <div class="card">
     <div class="conv-field">
       <span class="lbl">Из</span>
       <div class="conv-input-row">
-        <input type="number" id="convInput" value="1" step="any">
+        <input type="text" inputmode="decimal" autocomplete="off" autocorrect="off" spellcheck="false"
+               id="convInput" value="1" placeholder="0">
         <select class="conv-select" id="convFrom"></select>
       </div>
     </div>
-    <div class="conv-arrow">↓</div>
+    <div class="conv-arrow" style="display:flex;justify-content:center;gap:8px;align-items:center;margin:6px 0">
+      <button class="btn ghost" id="convSwap" style="padding:6px 12px;font-size:12px">⇅ Поменять</button>
+      <button class="btn ghost" id="convCopy" style="padding:6px 12px;font-size:12px">📋 Копировать</button>
+    </div>
     <div class="conv-field">
       <span class="lbl">В</span>
       <div class="conv-input-row">
@@ -1479,7 +1487,6 @@ getPanel('convert').innerHTML = `
   </div>
 `;
 
-// ── Производные ──
 getPanel('calc').innerHTML = `
   <div class="card">
     <h3>Производная (символьно)</h3>
@@ -1506,7 +1513,6 @@ getPanel('calc').innerHTML = `
   </div>
 `;
 
-// ── Заметки ──
 getPanel('notes').innerHTML = `
   <div class="card">
     <h3>Черновик</h3>
@@ -1523,7 +1529,6 @@ getPanel('notes').innerHTML = `
   </div>
 `;
 
-// ── Справочник ──
 getPanel('ref').innerHTML = `
   <div class="card">
     <h3>Физические константы</h3>
@@ -1535,26 +1540,68 @@ getPanel('ref').innerHTML = `
   </div>
 `;
 
-// ── Pomodoro ──
 getPanel('pomo').innerHTML = `
-  <div class="card">
+  <div class="card" style="text-align:center">
     <h3>Таймер Помодоро</h3>
     <div class="pomo-mode" id="pomoMode">Работа · 25 мин</div>
-    <div class="pomo-display" id="pomoTime">25:00</div>
+    <div style="position:relative;width:180px;height:180px;margin:8px auto">
+      <svg width="180" height="180" viewBox="0 0 180 180" style="transform:rotate(-90deg)">
+        <circle cx="90" cy="90" r="80" fill="none" stroke="var(--border)" stroke-width="10"/>
+        <circle id="pomoRing" cx="90" cy="90" r="80" fill="none" stroke="var(--accent)"
+                stroke-width="10" stroke-linecap="round"
+                stroke-dasharray="502.65" stroke-dashoffset="0"
+                style="transition:stroke-dashoffset 0.5s linear"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+        <div class="pomo-display" id="pomoTime" style="margin:0">25:00</div>
+      </div>
+    </div>
     <div class="btn-row">
       <button class="btn success" id="pomoStart">▶ Старт</button>
       <button class="btn ghost" id="pomoPause">⏸ Пауза</button>
       <button class="btn danger" id="pomoReset">⟲ Сброс</button>
     </div>
     <div class="btn-row" style="margin-top:8px;">
-      <button class="btn ghost" id="pomoMode25">25 мин</button>
-      <button class="btn ghost" id="pomoMode5">5 мин</button>
-      <button class="btn ghost" id="pomoMode50">50 мин</button>
+      <button class="btn ghost" id="pomoMode25">25</button>
+      <button class="btn ghost" id="pomoMode5">5</button>
+      <button class="btn ghost" id="pomoMode15">15</button>
+      <button class="btn ghost" id="pomoMode50">50</button>
+    </div>
+    <div class="toggle-row" style="justify-content:center;gap:10px;margin-top:4px">
+      <span style="font-size:13px">⚙️ Своё время</span>
+      <div class="switch" id="pomoCustomSwitch"></div>
+    </div>
+    <div id="pomoCustomPanel" style="display:none;margin-top:8px;text-align:left;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <label style="display:block;color:var(--text-mute);font-size:11px;text-transform:uppercase;font-weight:700;margin:0 0 4px;">Работа (мин)</label>
+          <input type="number" id="pomoCustomWork" min="1" max="180" value="25" inputmode="numeric">
+        </div>
+        <div>
+          <label style="display:block;color:var(--text-mute);font-size:11px;text-transform:uppercase;font-weight:700;margin:0 0 4px;">Отдых (мин)</label>
+          <input type="number" id="pomoCustomBreak" min="1" max="60" value="5" inputmode="numeric">
+        </div>
+        <div>
+          <label style="display:block;color:var(--text-mute);font-size:11px;text-transform:uppercase;font-weight:700;margin:0 0 4px;">Длинный (мин)</label>
+          <input type="number" id="pomoCustomLong" min="1" max="120" value="15" inputmode="numeric">
+        </div>
+        <div>
+          <label style="display:block;color:var(--text-mute);font-size:11px;text-transform:uppercase;font-weight:700;margin:0 0 4px;">Циклов до длинного</label>
+          <input type="number" id="pomoCustomCycle" min="1" max="12" value="4" inputmode="numeric">
+        </div>
+      </div>
+      <button class="btn success" id="pomoCustomApply" style="width:100%;margin-top:10px;">Применить своё время</button>
+    </div>
+    <div style="margin-top:12px;font-size:13px;color:var(--text-dim)">
+      Сессий сегодня: <b id="pomoCount" style="color:var(--accent)">0</b>
+    </div>
+    <div class="toggle-row" style="justify-content:center;gap:10px">
+      <span style="font-size:13px">🔔 Уведомления</span>
+      <div class="switch" id="pomoNotifySwitch"></div>
     </div>
   </div>
 `;
 
-// ── Статистика ──
 getPanel('stats').innerHTML = `
   <div class="card">
     <h3>Активность</h3>
@@ -1571,7 +1618,6 @@ getPanel('stats').innerHTML = `
   </div>
 `;
 
-// ── Настройки ──
 getPanel('settings').innerHTML = `
   <div class="card">
     <h3>Тема</h3>
@@ -1608,16 +1654,12 @@ applyTheme();
 applyBg();
 switchTab('basic');
 
-// ═══════════════════════════════════════════════════════
-//  РЕГИСТРАЦИЯ SERVICE WORKER
-// ═══════════════════════════════════════════════════════
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
 }
 
-// Install prompt (PWA)
 let deferredInstallPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -2152,7 +2194,6 @@ document.getElementById('encAscii').addEventListener('click', () => {
 document.getElementById('encCrc').addEventListener('click', () => {
   const t = document.getElementById('encText').value;
   const out = document.getElementById('encOut');
-  // CRC32
   let crc = 0xFFFFFFFF;
   for (let i = 0; i < t.length; i++) {
     crc ^= t.charCodeAt(i);
@@ -2169,7 +2210,6 @@ document.getElementById('logBtn').addEventListener('click', () => {
   const vars = [...new Set(expr.match(/[A-Z]/g) || [])].sort();
   if (!vars.length) { out.className='output err'; out.textContent='Используйте переменные A, B, C...'; return; }
   if (vars.length > 4) { out.className='output err'; out.textContent='Максимум 4 переменные'; return; }
-  const jsExpr = expr.replace(/&&/g, '&&').replace(/\|\|/g, '||').replace(/!/g, '!').replace(/([A-Z])/g, 'env.$1');
   const rows = [];
   const total = 1 << vars.length;
   rows.push(`<tr><th>${vars.join('</th><th>')}</th><th>Результат</th></tr>`);
@@ -2177,8 +2217,6 @@ document.getElementById('logBtn').addEventListener('click', () => {
     const env = {};
     vars.forEach((v, j) => env[v] = !!(i & (1 << (vars.length - 1 - j))));
     let result;
-    try { result = eval(jsExpr.replace(/env\./g, '')); } catch { result = '?'; }
-    // безопасный eval через Function
     try {
       const fn = new Function(...vars, `return (${expr.replace(/&&/g,'&&').replace(/\|\|/g,'||').replace(/!/g,'!')});`);
       result = fn(...vars.map(v => env[v]));
@@ -2407,7 +2445,8 @@ function drawGraph() {
 
   ctx.fillStyle = cText; ctx.font = '11px system-ui, sans-serif';
   ctx.textAlign = 'center';
-  const labelStep = graphRange <= 5 ? 1 : (graphRange <= 20 ? 5 : 10);
+  let labelStep = graphRange <= 5 ? 1 : (graphRange <= 20 ? 5 : 10);
+  if (graphRange < 1) labelStep = 0.2;
   for (let x = -100; x <= 100; x += labelStep) {
     const px = cx + x * scale;
     if (px < 20 || px > w - 20 || x === 0) continue;
@@ -2613,14 +2652,19 @@ document.getElementById('intBtn').addEventListener('click', () => {
 //  МАТРИЦЫ
 // ═══════════════════════════════════════════════════════
 let matrixA = null, matrixB = null, matrixResult = null;
+
 function renderMatrixPreview(m) {
   if (!m) return `<span class="none">не задана</span>`;
   let html = '<table>';
-  for (let i = 0; i < m.rows; i++) { html += '<tr>'; for (let j = 0; j < m.cols; j++) html += `<td>${fmt(m.data[i][j])}</td>`; html += '</tr>'; }
+  for (let i = 0; i < m.rows; i++) {
+    html += '<tr>';
+    for (let j = 0; j < m.cols; j++) html += `<td>${fmt(m.data[i][j])}</td>`;
+    html += '</tr>';
+  }
   return html + '</table>';
 }
 function renderMatrixResult(r) {
-  if (!r) return '';
+  if (r === null || r === undefined) return '';
   if (typeof r === 'number') return `<div class="mtx-result"><div class="label">Результат</div><div class="scalar">${fmt(r)}</div></div>`;
   return `<div class="mtx-result"><div class="label">Результат (${r.rows}×${r.cols})</div>${renderMatrixPreview(r)}</div>`;
 }
@@ -2630,9 +2674,13 @@ function renderMatrixPanel() {
     el.innerHTML = `<div class="card" style="text-align:center;padding:30px 20px">
       <div style="font-size:36px;opacity:0.4;margin-bottom:10px">▦</div>
       <div style="color:var(--text-mute);margin-bottom:12px">Матрицы не заданы</div>
-      <button class="btn" id="mtxCreateA">Создать матрицу A</button>
+      <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap">
+        <button class="btn" id="mtxCreateA">Создать A</button>
+        <button class="btn ghost" id="mtxCreateB">Создать B</button>
+      </div>
     </div>`;
     document.getElementById('mtxCreateA').addEventListener('click', () => openMatrixModal('A'));
+    document.getElementById('mtxCreateB').addEventListener('click', () => openMatrixModal('B'));
     return;
   }
   el.innerHTML = `
@@ -2640,12 +2688,18 @@ function renderMatrixPanel() {
       <div class="mtx-card">
         <div class="mtx-card-head"><span class="name">A</span><span class="size">${matrixA ? matrixA.rows+'×'+matrixA.cols : ''}</span></div>
         <div class="mtx-preview">${renderMatrixPreview(matrixA)}</div>
-        <button class="mtx-edit" data-target="A">${matrixA?'Изменить':'Создать'}</button>
+        <div class="mtx-card-actions">
+          <button class="mtx-edit" data-target="A">${matrixA?'Изменить':'Создать'}</button>
+          ${matrixA ? `<button class="mtx-edit danger" data-clear="A" title="Очистить A">✕</button>` : ''}
+        </div>
       </div>
       <div class="mtx-card">
         <div class="mtx-card-head"><span class="name">B</span><span class="size">${matrixB ? matrixB.rows+'×'+matrixB.cols : ''}</span></div>
         <div class="mtx-preview">${renderMatrixPreview(matrixB)}</div>
-        <button class="mtx-edit" data-target="B">${matrixB?'Изменить':'Создать'}</button>
+        <div class="mtx-card-actions">
+          <button class="mtx-edit" data-target="B">${matrixB?'Изменить':'Создать'}</button>
+          ${matrixB ? `<button class="mtx-edit danger" data-clear="B" title="Очистить B">✕</button>` : ''}
+        </div>
       </div>
     </div>
     ${matrixA ? `<div class="mtx-ops"><div class="mtx-ops-title">С матрицей A</div>
@@ -2658,14 +2712,23 @@ function renderMatrixPanel() {
         <button class="success" data-op="add">A+B</button>
         <button class="success" data-op="sub">A−B</button>
         <button class="success" data-op="mul">A×B</button>
+        <button class="danger" data-op="clearresult">Сбросить</button>
       </div></div>` : ''}
-    ${matrixResult ? renderMatrixResult(matrixResult) : ''}
-    <div class="mtx-ops"><div class="mtx-ops-row">
+    ${!matrixA || !matrixB ? `<div class="mtx-ops"><div class="mtx-ops-row">
       <button data-op="identity" style="grid-column:span 2">Единичная E(n)</button>
-      <button data-op="clearresult" style="grid-column:span 2">Сбросить</button>
-    </div></div>
+      <button class="danger" data-op="clearresult" style="grid-column:span 2">Сбросить результат</button>
+    </div></div>` : ''}
+    ${matrixResult !== null && matrixResult !== undefined ? renderMatrixResult(matrixResult) : ''}
   `;
   el.querySelectorAll('[data-target]').forEach(b => b.addEventListener('click', () => openMatrixModal(b.dataset.target)));
+  el.querySelectorAll('[data-clear]').forEach(b => b.addEventListener('click', () => {
+    const t = b.dataset.clear;
+    if (!confirm(`Удалить матрицу ${t}?`)) return;
+    if (t === 'A') matrixA = null; else matrixB = null;
+    matrixResult = null;
+    renderMatrixPanel();
+    haptic();
+  }));
   el.querySelectorAll('[data-op]').forEach(b => b.addEventListener('click', () => handleMatrixOp(b.dataset.op)));
 }
 function handleMatrixOp(op) {
@@ -2715,25 +2778,41 @@ const matrixInputsEl = document.getElementById('matrixInputs');
 const mRowsEl = document.getElementById('mRows');
 const mColsEl = document.getElementById('mCols');
 let matrixModalTarget = 'A';
+let matrixModalPreset = null;
+
 function buildMatrixInputs(preset) {
   const r = Math.max(1, Math.min(6, parseInt(mRowsEl.value) || 2));
   const c = Math.max(1, Math.min(6, parseInt(mColsEl.value) || 2));
-  matrixInputsEl.style.gridTemplateColumns = `repeat(${c}, 1fr)`;
+  matrixInputsEl.style.gridTemplateColumns = `repeat(${c}, minmax(0, 1fr))`;
   matrixInputsEl.innerHTML = '';
   for (let i = 0; i < r; i++) for (let j = 0; j < c; j++) {
     const inp = document.createElement('input');
-    inp.type = 'number'; inp.dataset.i = i; inp.dataset.j = j;
-    inp.style.textAlign = 'center'; inp.style.padding = '10px 4px'; inp.style.fontSize = '15px';
+    inp.type = 'text';
+    inp.inputMode = 'decimal';
+    inp.autocomplete = 'off';
+    inp.dataset.i = i; inp.dataset.j = j;
+    inp.style.cssText = 'text-align:center;padding:10px 4px;font-size:15px;font-weight:600;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);border-radius:8px;min-width:0;width:100%;font-family:inherit;';
     inp.value = preset && preset[i] && preset[i][j] !== undefined ? preset[i][j] : 0;
+    inp.addEventListener('focus', () => inp.select());
     matrixInputsEl.appendChild(inp);
   }
 }
-mRowsEl.addEventListener('input', () => buildMatrixInputs());
-mColsEl.addEventListener('input', () => buildMatrixInputs());
+mRowsEl.addEventListener('input', () => buildMatrixInputs(matrixModalPreset));
+mColsEl.addEventListener('input', () => buildMatrixInputs(matrixModalPreset));
+matrixModal.querySelectorAll('[data-mtx-size]').forEach(b => {
+  b.addEventListener('click', () => {
+    const n = parseInt(b.dataset.mtxSize);
+    mRowsEl.value = n; mColsEl.value = n;
+    matrixModalPreset = null;
+    buildMatrixInputs();
+    haptic();
+  });
+});
 function openMatrixModal(target) {
   matrixModalTarget = target;
   const existing = target === 'A' ? matrixA : matrixB;
   document.getElementById('matrixModalTitle').textContent = existing ? `Изменить матрицу ${target}` : `Создать матрицу ${target}`;
+  matrixModalPreset = existing ? existing.data : null;
   if (existing) { mRowsEl.value = existing.rows; mColsEl.value = existing.cols; buildMatrixInputs(existing.data); }
   else { mRowsEl.value = 2; mColsEl.value = 2; buildMatrixInputs(); }
   matrixModal.classList.add('open');
@@ -2742,7 +2821,10 @@ document.getElementById('saveMatrix').addEventListener('click', () => {
   const r = parseInt(mRowsEl.value) || 2;
   const c = parseInt(mColsEl.value) || 2;
   const data = Array.from({length:r}, () => Array(c).fill(0));
-  matrixInputsEl.querySelectorAll('input').forEach(inp => { data[+inp.dataset.i][+inp.dataset.j] = parseFloat(inp.value) || 0; });
+  matrixInputsEl.querySelectorAll('input').forEach(inp => {
+    const raw = inp.value.trim().replace(',', '.');
+    data[+inp.dataset.i][+inp.dataset.j] = raw === '' ? 0 : (parseFloat(raw) || 0);
+  });
   const m = {rows:r, cols:c, data};
   if (matrixModalTarget === 'A') matrixA = m; else matrixB = m;
   matrixResult = null;
@@ -2755,13 +2837,54 @@ document.getElementById('cancelMatrix').addEventListener('click', () => matrixMo
 //  КОНВЕРТЕР
 // ═══════════════════════════════════════════════════════
 const CONV_CATEGORIES = {
-  'Температура': { units:['°C','°F','K'], convert:(v,from,to)=>{let c;if(from==='°C')c=v;else if(from==='°F')c=(v-32)*5/9;else c=v-273.15;if(to==='°C')return c;if(to==='°F')return c*9/5+32;return c+273.15;} },
-  'Длина': { units:['м','см','мм','км','фут','дюйм','миля'], convert:(v,from,to)=>{const m={'м':1,'см':0.01,'мм':0.001,'км':1000,'фут':0.3048,'дюйм':0.0254,'миля':1609.344};return v*m[from]/m[to];} },
-  'Масса': { units:['кг','г','мг','фунт','унция'], convert:(v,from,to)=>{const kg={'кг':1,'г':0.001,'мг':1e-6,'фунт':0.453592,'унция':0.0283495};return v*kg[from]/kg[to];} },
-  'Углы': { units:['град','рад'], convert:(v,from,to)=>from===to?v:(from==='град'?v*Math.PI/180:v*180/Math.PI) },
-  'Площадь': { units:['м²','см²','км²','га','акр'], convert:(v,from,to)=>{const m2={'м²':1,'см²':0.0001,'км²':1e6,'га':10000,'акр':4046.86};return v*m2[from]/m2[to];} },
-  'Объём': { units:['л','мл','м³','галлон'], convert:(v,from,to)=>{const l={'л':1,'мл':0.001,'м³':1000,'галлон':3.78541};return v*l[from]/l[to];} },
-  'Скорость': { units:['м/с','км/ч','миль/ч'], convert:(v,from,to)=>{const ms={'м/с':1,'км/ч':1/3.6,'миль/ч':0.44704};return v*ms[from]/ms[to];} },
+  'Температура': {
+    units:['°C','°F','K'],
+    convert:(v,from,to)=>{
+      if (from === to) return v;
+      let c;
+      if (from==='°C') c = v;
+      else if (from==='°F') c = (v-32)*5/9;
+      else c = v - 273.15;
+      if (to==='°C') return c;
+      if (to==='°F') return c*9/5 + 32;
+      return c + 273.15;
+    }
+  },
+  'Длина': {
+    units:['м','см','мм','км','фут','дюйм','миля'],
+    convert:(v,from,to)=>{ const m={'м':1,'см':0.01,'мм':0.001,'км':1000,'фут':0.3048,'дюйм':0.0254,'миля':1609.344}; return v*m[from]/m[to]; }
+  },
+  'Масса': {
+    units:['кг','г','мг','фунт','унция'],
+    convert:(v,from,to)=>{ const kg={'кг':1,'г':0.001,'мг':1e-6,'фунт':0.45359237,'унция':0.028349523125}; return v*kg[from]/kg[to]; }
+  },
+  'Углы': {
+    units:['град','рад'],
+    convert:(v,from,to)=>{
+      if (from === to) return v;
+      return from==='град' ? v*Math.PI/180 : v*180/Math.PI;
+    }
+  },
+  'Площадь': {
+    units:['м²','см²','км²','га','акр'],
+    convert:(v,from,to)=>{ const m2={'м²':1,'см²':0.0001,'км²':1e6,'га':10000,'акр':4046.8564224}; return v*m2[from]/m2[to]; }
+  },
+  'Объём': {
+    units:['л','мл','м³','галлон (US)','галлон (UK)'],
+    convert:(v,from,to)=>{ const l={'л':1,'мл':0.001,'м³':1000,'галлон (US)':3.785411784,'галлон (UK)':4.54609}; return v*l[from]/l[to]; }
+  },
+  'Скорость': {
+    units:['м/с','км/ч','миль/ч','узел'],
+    convert:(v,from,to)=>{ const ms={'м/с':1,'км/ч':1/3.6,'миль/ч':0.44704,'узел':0.514444}; return v*ms[from]/ms[to]; }
+  },
+  'Данные': {
+    units:['Б','КБ','МБ','ГБ','ТБ','бит'],
+    convert:(v,from,to)=>{ const b={'Б':1,'КБ':1024,'МБ':1048576,'ГБ':1073741824,'ТБ':1099511627776,'бит':0.125}; return v*b[from]/b[to]; }
+  },
+  'Время': {
+    units:['с','мс','мин','ч','сут','нед'],
+    convert:(v,from,to)=>{ const s={'с':1,'мс':0.001,'мин':60,'ч':3600,'сут':86400,'нед':604800}; return v*s[from]/s[to]; }
+  },
 };
 let convCategory = 'Температура';
 function renderConvCategories() {
@@ -2771,32 +2894,60 @@ function renderConvCategories() {
     const b = document.createElement('button');
     b.textContent = cat;
     if (cat === convCategory) b.classList.add('active');
-    b.addEventListener('click', () => { convCategory = cat; renderConvCategories(); renderConvUnits(); convertNow(); haptic(); });
+    b.addEventListener('click', () => {
+      convCategory = cat;
+      document.getElementById('convInput').value = '1';
+      renderConvCategories();
+      renderConvUnits();
+      convertNow();
+      haptic();
+    });
     el.appendChild(b);
   });
 }
 function renderConvUnits() {
   const units = CONV_CATEGORIES[convCategory].units;
   const fs = document.getElementById('convFrom'), ts = document.getElementById('convTo');
+  const prevFrom = fs.value, prevTo = ts.value;
   fs.innerHTML = ''; ts.innerHTML = '';
   units.forEach(u => {
     const o1 = document.createElement('option'); o1.value = u; o1.textContent = u; fs.appendChild(o1);
     const o2 = document.createElement('option'); o2.value = u; o2.textContent = u; ts.appendChild(o2);
   });
-  fs.value = units[0]; ts.value = units[1] || units[0];
+  fs.value = units.includes(prevFrom) ? prevFrom : units[0];
+  ts.value = units.includes(prevTo) && prevTo !== fs.value ? prevTo : (units[1] || units[0]);
 }
 function convertNow() {
-  const v = parseFloat(document.getElementById('convInput').value) || 0;
-  const from = document.getElementById('convFrom').value, to = document.getElementById('convTo').value;
-  const r = CONV_CATEGORIES[convCategory].convert(v, from, to);
+  const raw = document.getElementById('convInput').value.trim().replace(',', '.');
+  const v = raw === '' ? NaN : parseFloat(raw);
+  const from = document.getElementById('convFrom').value;
+  const to = document.getElementById('convTo').value;
   const resEl = document.getElementById('convResult');
+  const unitEl = document.getElementById('convResultUnit');
+  const cat = CONV_CATEGORIES[convCategory];
+
+  if (!cat || !cat.units.includes(from) || !cat.units.includes(to) || Number.isNaN(v)) {
+    resEl.textContent = '—'; unitEl.textContent = '';
+    return;
+  }
+  const r = cat.convert(v, from, to);
+  if (!Number.isFinite(r)) { resEl.textContent = '—'; unitEl.textContent = ''; return; }
   resEl.textContent = fmt(r);
-  document.getElementById('convResultUnit').textContent = to;
+  unitEl.textContent = to;
   pulseOutput(document.querySelector('.conv-result'));
 }
 document.getElementById('convInput').addEventListener('input', convertNow);
 document.getElementById('convFrom').addEventListener('change', convertNow);
 document.getElementById('convTo').addEventListener('change', convertNow);
+document.getElementById('convSwap').addEventListener('click', () => {
+  const fs = document.getElementById('convFrom'), ts = document.getElementById('convTo');
+  [fs.value, ts.value] = [ts.value, fs.value];
+  convertNow(); haptic();
+});
+document.getElementById('convCopy').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('convResult').textContent);
+  showToast('✓ Скопировано');
+});
 
 // ═══════════════════════════════════════════════════════
 //  ЗАМЕТКИ / ЗАКЛАДКИ
@@ -2870,41 +3021,180 @@ FORMULAS.forEach(([name, formula]) => {
 // ═══════════════════════════════════════════════════════
 //  POMODORO
 // ═══════════════════════════════════════════════════════
+function todayKey() { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+
 let pomoTime = 25*60, pomoInterval = null, pomoRunning = false, pomoMode = 'work';
+let pomoTotal = 25*60;
+let pomoWorkLen = STORE.get('pomoWorkLen', 25) * 60;
+let pomoBreakLen = STORE.get('pomoBreakLen', 5) * 60;
+let pomoLongBreakLen = STORE.get('pomoLongBreakLen', 15) * 60;
+let pomoCycleLen = STORE.get('pomoCycleLen', 4);
+let pomoSessionInCycle = STORE.get('pomoCycle', 0);
+let pomoTodayCount = STORE.get('pomoTodayCount', { date: todayKey(), n: 0 });
+
 const pomoTimeEl = document.getElementById('pomoTime');
+const pomoRing = document.getElementById('pomoRing');
+const RING_LEN = 502.65;
+
 function updatePomo() {
   const m = Math.floor(pomoTime/60), s = pomoTime % 60;
   pomoTimeEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  document.getElementById('pomoMode').textContent = (pomoMode === 'work' ? 'Работа' : 'Отдых') + ` · ${Math.floor(pomoTime/60)} мин`;
+  const label = pomoMode === 'work' ? 'Работа' : (pomoMode === 'long' ? 'Длинный отдых' : 'Отдых');
+  document.getElementById('pomoMode').textContent = `${label} · ${Math.floor(pomoTotal/60)} мин`;
+  const progress = pomoTotal > 0 ? pomoTime / pomoTotal : 0;
+  pomoRing.style.strokeDashoffset = String(RING_LEN * (1 - progress));
+  if (pomoTodayCount.date !== todayKey()) {
+    pomoTodayCount = { date: todayKey(), n: 0 };
+    STORE.set('pomoTodayCount', pomoTodayCount);
+  }
+  document.getElementById('pomoCount').textContent = pomoTodayCount.n;
 }
+
+function pomoNotify(title, body) {
+  if (!STORE.get('pomoNotify', false)) return;
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') {
+    new Notification(title, { body });
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then(p => {
+      if (p === 'granted') new Notification(title, { body });
+    });
+  }
+}
+
+function pomoFinish() {
+  clearInterval(pomoInterval); pomoRunning = false;
+  pomoTimeEl.classList.remove('ticking');
+  haptic('success'); fireConfetti();
+  if (pomoMode === 'work') {
+    pomoTodayCount.n++;
+    STORE.set('pomoTodayCount', pomoTodayCount);
+    incrementStat('pomo');
+    pomoSessionInCycle++;
+    STORE.set('pomoCycle', pomoSessionInCycle);
+    if (pomoCycleLen > 0 && pomoSessionInCycle % pomoCycleLen === 0) {
+      pomoMode = 'long'; pomoTotal = pomoLongBreakLen;
+      pomoNotify('☕ Длинный перерыв', `${pomoCycleLen} помодоро позади — отдохни как следует`);
+    } else {
+      pomoMode = 'break'; pomoTotal = pomoBreakLen;
+      pomoNotify('☕ Перерыв', 'Пора отдохнуть');
+    }
+  } else {
+    pomoMode = 'work'; pomoTotal = pomoWorkLen;
+    pomoNotify('▶ Работа', 'Начинаем новый помодоро');
+  }
+  pomoTime = pomoTotal;
+  updatePomo();
+  if (STORE.get('pomoAuto', false)) document.getElementById('pomoStart').click();
+}
+
 document.getElementById('pomoStart').addEventListener('click', () => {
   if (pomoRunning) return;
   pomoRunning = true;
   pomoTimeEl.classList.add('ticking');
+  if (navigator.wakeLock && !window._pomoWakeLock) {
+    navigator.wakeLock.request('screen').then(l => { window._pomoWakeLock = l; }).catch(()=>{});
+  }
   pomoInterval = setInterval(() => {
     if (pomoTime > 0) { pomoTime--; updatePomo(); }
-    else {
-      clearInterval(pomoInterval); pomoRunning = false;
-      pomoTimeEl.classList.remove('ticking');
-      incrementStat('pomo');
-      haptic('success'); fireConfetti();
-      showToast(pomoMode === 'work' ? '✓ Работа завершена!' : '✓ Отдых завершён!');
-      pomoMode = pomoMode === 'work' ? 'break' : 'work';
-      pomoTime = pomoMode === 'work' ? 25*60 : 5*60;
-      updatePomo();
-    }
+    else pomoFinish();
   }, 1000);
 });
-document.getElementById('pomoPause').addEventListener('click', () => { clearInterval(pomoInterval); pomoRunning = false; pomoTimeEl.classList.remove('ticking'); });
-document.getElementById('pomoReset').addEventListener('click', () => { clearInterval(pomoInterval); pomoRunning = false; pomoTimeEl.classList.remove('ticking'); pomoMode = 'work'; pomoTime = 25*60; updatePomo(); });
-document.getElementById('pomoMode25').addEventListener('click', () => { clearInterval(pomoInterval); pomoRunning = false; pomoTimeEl.classList.remove('ticking'); pomoMode = 'work'; pomoTime = 25*60; updatePomo(); });
-document.getElementById('pomoMode5').addEventListener('click', () => { clearInterval(pomoInterval); pomoRunning = false; pomoTimeEl.classList.remove('ticking'); pomoMode = 'break'; pomoTime = 5*60; updatePomo(); });
-document.getElementById('pomoMode50').addEventListener('click', () => { clearInterval(pomoInterval); pomoRunning = false; pomoTimeEl.classList.remove('ticking'); pomoMode = 'work'; pomoTime = 50*60; updatePomo(); });
+document.getElementById('pomoPause').addEventListener('click', () => {
+  clearInterval(pomoInterval); pomoRunning = false;
+  pomoTimeEl.classList.remove('ticking');
+  if (window._pomoWakeLock) { window._pomoWakeLock.release(); window._pomoWakeLock = null; }
+});
+document.getElementById('pomoReset').addEventListener('click', () => {
+  clearInterval(pomoInterval); pomoRunning = false;
+  pomoTimeEl.classList.remove('ticking');
+  pomoMode = 'work'; pomoTotal = pomoWorkLen; pomoTime = pomoTotal;
+  if (window._pomoWakeLock) { window._pomoWakeLock.release(); window._pomoWakeLock = null; }
+  updatePomo();
+});
+function setPomoPreset(workMin, breakMin) {
+  clearInterval(pomoInterval); pomoRunning = false;
+  pomoTimeEl.classList.remove('ticking');
+  pomoWorkLen = workMin * 60; pomoBreakLen = breakMin * 60;
+  STORE.set('pomoWorkLen', workMin); STORE.set('pomoBreakLen', breakMin);
+  pomoMode = 'work'; pomoTotal = pomoWorkLen; pomoTime = pomoTotal;
+  if (window._pomoWakeLock) { window._pomoWakeLock.release(); window._pomoWakeLock = null; }
+  updatePomo();
+}
+document.getElementById('pomoMode25').addEventListener('click', () => setPomoPreset(25, 5));
+document.getElementById('pomoMode5').addEventListener('click',  () => setPomoPreset(5, 1));
+document.getElementById('pomoMode15').addEventListener('click', () => setPomoPreset(15, 3));
+document.getElementById('pomoMode50').addEventListener('click', () => setPomoPreset(50, 10));
+
+(function initPomoNotify() {
+  const sw = document.getElementById('pomoNotifySwitch');
+  const on = STORE.get('pomoNotify', false);
+  sw.classList.toggle('on', on);
+  sw.addEventListener('click', () => {
+    const now = !sw.classList.contains('on');
+    sw.classList.toggle('on', now);
+    STORE.set('pomoNotify', now);
+    if (now && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  });
+})();
+
+(function initPomoCustom() {
+  const sw = document.getElementById('pomoCustomSwitch');
+  const panel = document.getElementById('pomoCustomPanel');
+  const open = STORE.get('pomoCustomOpen', false);
+  sw.classList.toggle('on', open);
+  panel.style.display = open ? 'block' : 'none';
+
+  const workEl  = document.getElementById('pomoCustomWork');
+  const breakEl = document.getElementById('pomoCustomBreak');
+  const longEl  = document.getElementById('pomoCustomLong');
+  const cycleEl = document.getElementById('pomoCustomCycle');
+  workEl.value  = STORE.get('pomoWorkLen', 25);
+  breakEl.value = STORE.get('pomoBreakLen', 5);
+  longEl.value  = STORE.get('pomoLongBreakLen', 15);
+  cycleEl.value = STORE.get('pomoCycleLen', 4);
+
+  sw.addEventListener('click', () => {
+    const now = !sw.classList.contains('on');
+    sw.classList.toggle('on', now);
+    panel.style.display = now ? 'block' : 'none';
+    STORE.set('pomoCustomOpen', now);
+    haptic();
+  });
+
+  document.getElementById('pomoCustomApply').addEventListener('click', () => {
+    const w = Math.max(1, Math.min(180, parseInt(workEl.value)  || 25));
+    const b = Math.max(1, Math.min(60,  parseInt(breakEl.value) || 5));
+    const l = Math.max(1, Math.min(120, parseInt(longEl.value)  || 15));
+    const c = Math.max(1, Math.min(12,  parseInt(cycleEl.value) || 4));
+    workEl.value = w; breakEl.value = b; longEl.value = l; cycleEl.value = c;
+
+    pomoWorkLen = w * 60;
+    pomoBreakLen = b * 60;
+    pomoLongBreakLen = l * 60;
+    pomoCycleLen = c;
+    STORE.set('pomoWorkLen', w);
+    STORE.set('pomoBreakLen', b);
+    STORE.set('pomoLongBreakLen', l);
+    STORE.set('pomoCycleLen', c);
+
+    clearInterval(pomoInterval); pomoRunning = false;
+    pomoTimeEl.classList.remove('ticking');
+    pomoMode = 'work'; pomoTotal = pomoWorkLen; pomoTime = pomoTotal;
+    if (window._pomoWakeLock) { window._pomoWakeLock.release(); window._pomoWakeLock = null; }
+    updatePomo();
+    showToast(`✓ ${w} / ${b} / ${l} мин, цикл ${c}`);
+    haptic('success');
+  });
+})();
+
+updatePomo();
 
 // ═══════════════════════════════════════════════════════
 //  СТАТИСТИКА
 // ═══════════════════════════════════════════════════════
-function todayKey() { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
 function incrementStat(type) {
   const stats = STORE.get('stats', {total: 0, pomos: 0, days: {}});
   if (type === 'calc') stats.total = (stats.total || 0) + 1;
@@ -3000,7 +3290,6 @@ document.getElementById('applyCustom').addEventListener('click', () => {
   renderThemePicker();
   showToast('✓ Своя тема применена');
 });
-setupSwitch('darkSwitch', 'darkModeToggle', false, () => {});
 (function initDarkSwitch() {
   const el = document.getElementById('darkSwitch');
   const theme = STORE.get('theme', 'dark');
